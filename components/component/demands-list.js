@@ -138,9 +138,7 @@ export const Demandes = () => {
                   <td className="px-4 py-3 space-x-2">
                     {demande.inscrit ? (
                       <>
-                        <Link
-                          href={`/inscription/payer/${demande.id}`} /* route to be added later to complete inscription process for demand*/
-                        >
+                        <Link href={`/inscription/payer/${demande.id}`}>
                           <button className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-md">
                             Finaliser
                           </button>

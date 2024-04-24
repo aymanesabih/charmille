@@ -1,3 +1,5 @@
+// app/inscription/payer/payer.js
+
 import { useEffect, useState } from 'react';
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
@@ -7,10 +9,11 @@ import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import Swal from 'sweetalert2';
 
-export function Payer() {
+export function Payer({ id }) {
   const [studentData, setStudentData] = useState(null);
-  const [isPaid, setIsPaid] = useState(false); 
-  const [photoURL, setPhotoURL] = useState(null); 
+  const [isPaid, setIsPaid] = useState(false);
+  const [photoURL, setPhotoURL] = useState(null);
+  const [price, setPrice] = useState(null); // Add state to hold the price
 
   useEffect(() => {
     async function fetchStudentData() {
@@ -18,7 +21,7 @@ export function Payer() {
         const { data, error } = await supabase
           .from('demandes')
           .select('*')
-          .eq('id',18) 
+          .eq('id', id)
           .single();
 
         if (error) {
@@ -31,8 +34,65 @@ export function Payer() {
       }
     }
 
-    fetchStudentData();
-  }, []);
+    if (id) {
+      fetchStudentData();
+    }
+  }, [id]);
+
+  useEffect(() => {
+    async function fetchPrice() {
+      try {
+        const { data, error } = await supabase
+          .from('settings')
+          .select(studentData.grade_level) // Pass the grade_level as a string
+          .eq('name', 'Inscription')
+          .single();
+
+        if (error) {
+          throw error;
+        }
+        // Set the price using setPrice
+        setPrice(data[studentData.grade_level]);
+        console.log(price)
+      } catch (error) {
+        console.error('Error fetching price:', error.message);
+      }
+    }
+
+    if (studentData) {
+      fetchPrice();
+    }
+  }, [studentData]);
+
+
+  useEffect(() => {
+    async function fetchIsPaid() {
+      try {
+        const { data, error } = await supabase
+          .from('payment')
+          .select('inscription')
+          .eq('student_id', id)
+          .single();
+
+        if (error) {
+          throw error;
+        }
+
+        if (data && data.inscription !== null) {
+          setIsPaid(true);
+        } else {
+          setIsPaid(false);
+        }
+      } catch (error) {
+        console.error('Error fetching payment:', error.message);
+      }
+    }
+
+    if (studentData) {
+      fetchIsPaid();
+    }
+  }, [studentData]);
+
 
   const handlePhotoUpload = async (file) => {
     try {
@@ -47,12 +107,9 @@ export function Payer() {
         throw error;
       }
 
-      
       const photoURL = `https://doqgfvlrcmvyhjaksyml.supabase.co/storage/v1/object/public/student_photos/student_photos/${studentData.id}`;
       console.log('Done');
       console.log(photoURL)
-
-      
       setPhotoURL(photoURL);
     } catch (error) {
       console.error('Error uploading photo:', error.message);
@@ -75,12 +132,12 @@ export function Payer() {
       });
 
       if (confirmed.isConfirmed) {
-        
+
         if (!photoURL) {
           throw new Error('Veuillez télécharger une photo.');
         }
 
-        
+
         const { data: newStudent, error: newStudentError } = await supabase
           .from('students')
           .insert([
@@ -97,7 +154,7 @@ export function Payer() {
               bloodtype: values.bloodType,
               allergies: values.allergies,
               medical_conditions: values.medicalConditions,
-              photo: photoURL, 
+              photo: photoURL,
             }
           ]);
 
@@ -111,7 +168,7 @@ export function Payer() {
             {
               student_id: studentData.id,
               student_name: `${studentData.first_name} ${studentData.last_name}`,
-              inscription: true,
+              inscription: price,
             }
           ]);
 
@@ -122,7 +179,7 @@ export function Payer() {
         setIsPaid(true);
         console.log('Student marked as paid:', studentData.id);
 
-        
+
         Swal.fire({
           icon: 'success',
           title: 'Élève inscrit avec succès',
@@ -132,7 +189,7 @@ export function Payer() {
       }
     } catch (error) {
       console.error('Error marking as paid:', error.message);
-      
+
       Swal.fire({
         icon: 'error',
         title: 'Erreur!',
@@ -144,35 +201,36 @@ export function Payer() {
 
 
   const validationSchema = Yup.object().shape({
-    bloodType: Yup.string().required('Blood type is required'),
-    allergies: Yup.string().required('Allergies are required'),
-    medicalConditions: Yup.string().required('Medical conditions are required'),
-    address: Yup.string().required('Address is required'),
+    bloodType: Yup.string().required('Le groupe sanguin est requis'),
+    allergies: Yup.string(), // Allow empty string for allergies
+    medicalConditions: Yup.string(), // Allow empty string for medical conditions
+    address: Yup.string().required('L\'adresse est requise'),
   });
+
 
   return (
     <div className="container w-3/4 mx-auto my-8 px-4 md:px-6">
       {studentData && (
         <div className="text-center">
           <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-            <h2 className="text-2xl font-bold mb-4 text-blue-700">Student Information</h2>
+            <h2 className="text-2xl font-bold mb-4 text-blue-700">Informations de l'Étudiant</h2>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <p className="text-gray-500 dark:text-gray-400">Name</p>
-                <p className="font-medium">{`${studentData.first_name} ${studentData.last_name}`}</p>
+                <p className="text-gray-500 dark:text-gray-400">Nom</p>
+                <p className="font-medium">{`${studentData.first_name.charAt(0).toUpperCase() + studentData.first_name.slice(1)} ${studentData.last_name.charAt(0).toUpperCase() + studentData.last_name.slice(1)}`}</p>
               </div>
               <div>
-                <p className="text-gray-500 dark:text-gray-400">Grade</p>
+                <p className="text-gray-500 dark:text-gray-400">Niveau</p>
                 <p className="font-medium">{studentData.grade_level}</p>
               </div>
               <div>
-                <p className="text-gray-500 dark:text-gray-400">Student ID</p>
+                <p className="text-gray-500 dark:text-gray-400">ID de l'Étudiant</p>
                 <p className="font-medium">{studentData.id}</p>
               </div>
             </div>
           </div>
           <div className="bg-white rounded-lg shadow-md p-6">
-            <h2 className="text-2xl font-bold mb-4 text-blue-700">Additional Details</h2>
+            <h2 className="text-2xl font-bold mb-4 text-blue-700">Détails Supplémentaires</h2>
             <Formik
               initialValues={{
                 bloodType: '',
@@ -187,9 +245,9 @@ export function Payer() {
                 <Form>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="bloodType">Blood Type</Label>
+                      <Label htmlFor="bloodType">Groupe Sanguin <span className="text-red-500">*</span></Label>
                       <Field as="select" id="bloodType" name="bloodType" className="block w-full px-4 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                        <option value="">Select blood type</option>
+                        <option value="">Sélectionner le groupe sanguin</option>
                         <option value="A+">A+</option>
                         <option value="A-">A-</option>
                         <option value="B+">B+</option>
@@ -203,22 +261,22 @@ export function Payer() {
                     </div>
                     <div>
                       <Label htmlFor="allergies">Allergies</Label>
-                      <Field as={Textarea} id="allergies" name="allergies" placeholder="Enter any allergies" />
+                      <Field as={Textarea} id="allergies" name="allergies" placeholder="Entrer les allergies" />
                       <ErrorMessage name="allergies" component="div" className="text-red-500" />
                     </div>
                   </div>
                   <div className="mt-4">
-                    <Label htmlFor="medicalConditions">Medical Conditions</Label>
-                    <Field as={Textarea} id="medicalConditions" name="medicalConditions" placeholder="Enter any medical conditions" />
+                    <Label htmlFor="medicalConditions">Conditions Médicales</Label>
+                    <Field as={Textarea} id="medicalConditions" name="medicalConditions" placeholder="Entrer les conditions médicales" />
                     <ErrorMessage name="medicalConditions" component="div" className="text-red-500" />
                   </div>
                   <div className="mt-4">
-                    <Label htmlFor="address">Address</Label>
-                    <Field as={Textarea} id="address" name="address" placeholder="Enter student's address" />
+                    <Label htmlFor="address">Adresse <span className="text-red-500">*</span></Label>
+                    <Field as={Textarea} id="address" name="address" placeholder="Entrer l'adresse de l'étudiant" />
                     <ErrorMessage name="address" component="div" className="text-red-500" />
                   </div>
                   <div className="mt-4">
-                    <Label htmlFor="photo">Photo</Label>
+                    <Label htmlFor="photo">Photo <span className="text-red-500">*</span></Label>
                     <input
                       id="photo"
                       name="photo"
@@ -229,12 +287,14 @@ export function Payer() {
                     />
                   </div>
                   <div className="bg-white rounded-lg shadow-md p-6 mt-4">
-                    <h2 className="text-2xl font-bold mb-4">Payment Details</h2>
+                    <h2 className="text-2xl font-bold mb-4">Détails de Paiement</h2>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <p className="text-gray-500 dark:text-gray-400">Signup Fee</p>
+                        <p className="center ">Frais d'Inscription : <span className="text-green-500 font-bold"> {price} DH</span></p>
                         <div className="flex items-center justify-between">
-                          <p className="font-medium">{isPaid ? 'Paid' : 'Not Paid'}</p>
+                          <p className={isPaid ? 'font-medium text-green-500' : 'font-medium text-red-500'}>
+                            {isPaid ? 'Payé' : 'Non Payé'}
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -251,4 +311,3 @@ export function Payer() {
     </div>
   );
 }
-
