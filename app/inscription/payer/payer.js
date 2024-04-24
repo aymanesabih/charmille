@@ -1,9 +1,8 @@
-// app/inscription/payer/payer.js
-
 import { useEffect, useState } from 'react';
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
+import { LoadingPayer } from './loading-payer';
 import { supabase } from '../../../utils/supabaseClient';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
@@ -13,7 +12,9 @@ export function Payer({ id }) {
   const [studentData, setStudentData] = useState(null);
   const [isPaid, setIsPaid] = useState(false);
   const [photoURL, setPhotoURL] = useState(null);
-  const [price, setPrice] = useState(null); // Add state to hold the price
+  const [price, setPrice] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     async function fetchStudentData() {
@@ -30,7 +31,9 @@ export function Payer({ id }) {
 
         setStudentData(data);
       } catch (error) {
-        console.error('Error fetching student data:', error.message);
+        setError(error.message);
+      } finally {
+        setLoading(false);
       }
     }
 
@@ -44,18 +47,17 @@ export function Payer({ id }) {
       try {
         const { data, error } = await supabase
           .from('settings')
-          .select(studentData.grade_level) // Pass the grade_level as a string
+          .select(studentData.grade_level)
           .eq('name', 'Inscription')
           .single();
 
         if (error) {
           throw error;
         }
-        // Set the price using setPrice
+
         setPrice(data[studentData.grade_level]);
-        console.log(price)
       } catch (error) {
-        console.error('Error fetching price:', error.message);
+        setError(error.message);
       }
     }
 
@@ -63,7 +65,6 @@ export function Payer({ id }) {
       fetchPrice();
     }
   }, [studentData]);
-
 
   useEffect(() => {
     async function fetchIsPaid() {
@@ -78,13 +79,9 @@ export function Payer({ id }) {
           throw error;
         }
 
-        if (data && data.inscription !== null) {
-          setIsPaid(true);
-        } else {
-          setIsPaid(false);
-        }
+        setIsPaid(data && data.inscription !== null);
       } catch (error) {
-        console.error('Error fetching payment:', error.message);
+        setError(error.message);
       }
     }
 
@@ -92,7 +89,6 @@ export function Payer({ id }) {
       fetchIsPaid();
     }
   }, [studentData]);
-
 
   const handlePhotoUpload = async (file) => {
     try {
@@ -108,15 +104,11 @@ export function Payer({ id }) {
       }
 
       const photoURL = `https://doqgfvlrcmvyhjaksyml.supabase.co/storage/v1/object/public/student_photos/student_photos/${studentData.id}`;
-      console.log('Done');
-      console.log(photoURL)
       setPhotoURL(photoURL);
     } catch (error) {
-      console.error('Error uploading photo:', error.message);
+      setError(error.message);
     }
   };
-
-
 
   const handleSubmit = async (values) => {
     try {
@@ -132,11 +124,16 @@ export function Payer({ id }) {
       });
 
       if (confirmed.isConfirmed) {
-
         if (!photoURL) {
-          throw new Error('Veuillez télécharger une photo.');
+          // Display an informational alert instead of an error
+          await Swal.fire({
+            icon: 'info',
+            title: 'Attendez un instant',
+            text: 'Veuillez patienter pendant que la photo est téléchargée...',
+            confirmButtonColor: '#3085d6',
+          });
+          return; // Exit the function without proceeding further
         }
-
 
         const { data: newStudent, error: newStudentError } = await supabase
           .from('students')
@@ -176,20 +173,28 @@ export function Payer({ id }) {
           throw paymentError;
         }
 
+        // Delete the request from the 'demandes' table
+        const { error: deleteError } = await supabase
+          .from('demandes')
+          .delete()
+          .eq('id', studentData.id);
+
+        if (deleteError) {
+          throw deleteError;
+        }
+
         setIsPaid(true);
-        console.log('Student marked as paid:', studentData.id);
-
-
         Swal.fire({
           icon: 'success',
           title: 'Élève inscrit avec succès',
           text: 'Les données de l\'étudiant ont été soumises avec succès.',
           confirmButtonColor: '#3085d6',
         });
+
+        printReceipt(); // Call function to print receipt
       }
     } catch (error) {
-      console.error('Error marking as paid:', error.message);
-
+      setError(error.message);
       Swal.fire({
         icon: 'error',
         title: 'Erreur!',
@@ -199,14 +204,83 @@ export function Payer({ id }) {
     }
   };
 
+  const printReceipt = () => {
+    const currentDate = new Date().toLocaleDateString('fr-FR', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+
+    const printableContent = `
+    <div style="text-align: center;">
+      <img src="/ESTC.png" alt="Logo" style="width: 100px; height: 100px;">
+      <h1 style="margin-top: 20px;">École Les Charmilles</h1>
+      <h2>Reçu d'inscription</h2>
+      <p>Date: ${currentDate}</p>
+    </div>
+    <table style="width: 100%; margin-top: 20px;">
+      <tr>
+        <td><strong>Nom:</strong></td>
+        <td>${studentData.first_name} ${studentData.last_name}</td>
+      </tr>
+      <tr>
+        <td><strong>Niveau:</strong></td>
+        <td>${studentData.grade_level}</td>
+      </tr>
+      <tr>
+        <td><strong>Prix:</strong></td>
+        <td>${price} DH</td>
+      </tr>
+      <tr>
+        <td><strong>Statut:</strong></td>
+        <td>Payé</td>
+      </tr>
+    </table>
+  `;
+
+    const printWindow = window.open('', '_blank');
+    printWindow.document.open();
+    printWindow.document.write(`
+    <html>
+      <head>
+        <title>Reçu d'inscription</title>
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+          }
+          table {
+            border-collapse: collapse;
+            width: 100%;
+          }
+          th, td {
+            border: 1px solid #dddddd;
+            text-align: left;
+            padding: 8px;
+          }
+          th {
+            background-color: #f2f2f2;
+          }
+        </style>
+      </head>
+      <body>${printableContent}</body>
+    </html>
+  `);
+    printWindow.document.close();
+    printWindow.print();
+  };
+
 
   const validationSchema = Yup.object().shape({
     bloodType: Yup.string().required('Le groupe sanguin est requis'),
-    allergies: Yup.string(), // Allow empty string for allergies
-    medicalConditions: Yup.string(), // Allow empty string for medical conditions
+    allergies: Yup.string(),
+    medicalConditions: Yup.string(),
     address: Yup.string().required('L\'adresse est requise'),
   });
 
+  if (loading) {
+    return <LoadingPayer />;
+  }
 
   return (
     <div className="container w-3/4 mx-auto my-8 px-4 md:px-6">
@@ -288,18 +362,18 @@ export function Payer({ id }) {
                   </div>
                   <div className="bg-white rounded-lg shadow-md p-6 mt-4">
                     <h2 className="text-2xl font-bold mb-4">Détails de Paiement</h2>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div>
                       <div>
-                        <p className="center ">Frais d'Inscription : <span className="text-green-500 font-bold"> {price} DH</span></p>
-                        <div className="flex items-center justify-between">
-                          <p className={isPaid ? 'font-medium text-green-500' : 'font-medium text-red-500'}>
+                        <p>Frais d'Inscription ={'>'} Niveau: {studentData.grade_level} : <span className="text-green-500 font-bold"> {price} DH</span></p>
+                        <div className="mt-2">
+                          <p className={isPaid ? 'font-medium text-green-500 font-bold' : 'font-medium text-red-500 font-bold'}>
                             {isPaid ? 'Payé' : 'Non Payé'}
                           </p>
                         </div>
                       </div>
                     </div>
                   </div>
-                  {!isPaid && ( // Only render the button if isPaid is false
+                  {!isPaid && (
                     <Button type="submit" variant="botonakhdra" disabled={!studentData}>
                       Finaliser Inscription
                     </Button>
