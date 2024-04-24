@@ -1,12 +1,14 @@
+"use client";
 import Image from "next/image";
 import Card from "../ui/Atcualite/PostCard";
+import { useState } from "react";
+import FetchPosts from "../../../api/Actualites/FetchData";
+
 export default function Actualites() {
   return (
-  
     <div>
       {/* Header Image */}
       <header>
-        
         <OpeningPost
           MyImage="/images/actualite-header-image.jpg"
           title={"Toujours quelque chose de nouveau !"}
@@ -14,38 +16,16 @@ export default function Actualites() {
         />
       </header>
       {/* Grid of Cards */}
-      <section className="grid grid-cols-3 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:4 w-full">
-        <Card
-          imageUrl="/images/event.jpg"
-          title="Célébration de la 48ème anniversaire de la glorieuse marche verte"
-          Date="March 30, 2024"
-        />
-      
-        <Card
-          imageUrl="/images/event.jpg"
-          title="Célébration de la 48ème anniversaire de la glorieuse marche verte"
-          Date="March 30, 2024"
-        />
-        <Card
-          imageUrl="/images/event.jpg"
-          title="Célébration de la 48ème anniversaire de la glorieuse marche verte"
-          Date="March 30, 2024"
-        />
-        <Card
-          imageUrl="/images/event.jpg"
-          title="Célébration de la 48ème anniversaire de la glorieuse marche verte"
-          Date="March 30, 2024"
-        />
+      <section className="bg-white">
+        <FetchPosts />
       </section>
     </div>
   );
 }
 
-
-
 function OpeningPost({ MyImage, title, Text }) {
   return (
-    <div className="relative w-full mt-5">
+    <div className="relative w-full mt-5 mb-5">
       {/* Container for the image */}
       <div className="relative w-full h-64">
         {/* Image */}
