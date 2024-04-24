@@ -299,9 +299,11 @@ export function Payer({ id }) {
                       </div>
                     </div>
                   </div>
-                  <Button type="submit" variant="botonakhdra" disabled={!studentData}>
-                    Finaliser Inscription
-                  </Button>
+                  {!isPaid && ( // Only render the button if isPaid is false
+                    <Button type="submit" variant="botonakhdra" disabled={!studentData}>
+                      Finaliser Inscription
+                    </Button>
+                  )}
                 </Form>
               )}
             </Formik>

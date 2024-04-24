@@ -160,7 +160,7 @@ export const Demandes = () => {
         <div className="space-x-2">
           {row.inscrit ? (
             <>
-              <Link href={`/inscription/payer/${demandes.id}`}>
+              <Link href={`/inscription/payer/${row.id}`}>
                 <button
                   style={{ lineHeight: "32px" }}
                   className="px-4 bg-green-500 hover:bg-green-600 text-white rounded-md"
