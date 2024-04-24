@@ -103,13 +103,11 @@ export const Demandes = () => {
       field: "first_name",
       headerName: "Prénom",
       width: 150,
-      editable: true,
     },
     {
       field: "last_name",
       headerName: "Nom",
       width: 150,
-      editable: true,
     },
     {
       field: "age",
@@ -139,7 +137,19 @@ export const Demandes = () => {
       headerName: "status",
       sortable: true,
       width: 130,
-      valueGetter: (value, row) => (row.inscrit ? "confirmée" : "en attente"),
+      renderCell: ({ row }) => (
+        <div className="space-x-2">
+          {row.inscrit ? (
+            <span className="px-2 py-1 rounded-full bg-green-100 text-green-800">
+              Confirmée
+            </span>
+          ) : (
+            <span className="px-2 py-1 rounded-full bg-yellow-100 text-yellow-800">
+              En Attente
+            </span>
+          )}
+        </div>
+      ),
     },
     {
       field: "actions",
