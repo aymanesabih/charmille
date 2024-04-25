@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { FetchPost } from "../../../api/Actualites/FetchPost";
 import { InsertComments } from "../../../api/Actualites/InsertComments";
+import Comments from "./Comment";
+import { FetchComments } from "../../../api/Actualites/FetchComments";
 
 export default function FacebookPostComponent({ postID }) {
   const [post, setPost] = useState(null);
@@ -24,6 +26,21 @@ export default function FacebookPostComponent({ postID }) {
     }
   }, [post]);
 
+  const [comment, setcomment] = useState(null);
+  useEffect(() => {
+    const fetchcommentData = async () => {
+      try {
+        const commentData = await FetchComments(3);
+        setcomment(commentData);
+        console.log(commentData);
+      } catch (error) {
+        console.error("Error fetching comment:", error.message);
+      }
+    };
+
+    fetchcommentData();
+  }, []);
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-1">
       <div className="text-xl md:text-4xl w-full text-violet-950 mt-10">
@@ -38,10 +55,11 @@ export default function FacebookPostComponent({ postID }) {
       )}
       <div className="mt-10 text-violet-950">
         <hr />
-        By Noaman Makhlouf | Date | Actualité, Évènement | 0 Comments |{" "}
-        {post && post.id}
+        By Noaman Makhlouf | {post && post.postDate} | Actualité, Évènement |{" "}
+        {comment && comment.length} Comment
         <hr className="mb-5" />
         <div>
+          <Comments comment={comment} />
           <MyForm postID={postID} />
         </div>
       </div>

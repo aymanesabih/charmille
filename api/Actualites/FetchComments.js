@@ -1,6 +1,7 @@
 import { supabase } from "../../utils/supabaseClient";
 
-export default async function FetchComments({ postId }) {
+export async function FetchComments(postId) {
+  console.log("Feccthing comment +" + postId);
   try {
     const { data, error } = await supabase
       .from("comments")
@@ -9,11 +10,11 @@ export default async function FetchComments({ postId }) {
       .eq("postId", postId);
 
     if (error) {
-      <div>{error.message}</div>;
+      return error.message;
     } else {
-      return <div> {data.id}</div>; // Assuming postId is unique, return the first item in data array
+      return data[0];
     }
   } catch (error) {
-    <div>{error.message}</div>;
+    return error.message;
   }
 }

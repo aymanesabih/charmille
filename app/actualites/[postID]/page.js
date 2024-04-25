@@ -29,14 +29,8 @@ export default function FacebookPost({ params }) {
 
   return (
     <main className=" bg-white">
-      <div>
-        Comments
-        <FetchComments postId={3} />
-      </div>
-
       <div className=" mx-20">
         <div id="fb-root"></div>
-
         <FacebookPostCompononent postID={params.postID} />
       </div>
     </main>

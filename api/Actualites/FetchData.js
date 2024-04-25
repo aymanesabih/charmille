@@ -92,7 +92,6 @@ export default function FetchPosts() {
                 title={post.description}
                 Date={post.postDate}
               />
-             
             ))}
       </div>
 
