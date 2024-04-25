@@ -1,10 +1,13 @@
 "use client";
 import FacebookPostCompononent from "../../components/component/FacebookPostCompononent";
-import Head from "next/head";
-import InsertComments from "../../../api/Actualites/InsertComments";
+import { FetchComments } from "../../../api/Actualites/FetchComments";
 import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
-export default function FacebookPost(post) {
+export default function FacebookPost({ params }) {
+  const router = useRouter();
+
   useEffect(() => {
     // Create a <script> element
     const script = document.createElement("script");
@@ -26,9 +29,15 @@ export default function FacebookPost(post) {
 
   return (
     <main className=" bg-white">
+      <div>
+        Comments
+        <FetchComments postId={3} />
+      </div>
+
       <div className=" mx-20">
         <div id="fb-root"></div>
-        <FacebookPostCompononent post={post} />
+
+        <FacebookPostCompononent postID={params.postID} />
       </div>
     </main>
   );

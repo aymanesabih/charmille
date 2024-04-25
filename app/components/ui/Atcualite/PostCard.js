@@ -1,4 +1,5 @@
-export default function Card({ imageUrl, title, Date, key }) {
+import Link from "next/link";
+export default function Card({ imageUrl, title, Date, key, postId }) {
   return (
     <div className="bg-white rounded-lg shadow-md w-10/12 mx-auto mt-4 hover:shadow-2xl hover:cursor-pointer flex flex-col">
       <div key={key} className="h-1/2">
@@ -22,9 +23,13 @@ export default function Card({ imageUrl, title, Date, key }) {
 
       {/* "Voir plus" button */}
       <div className="flex justify-center">
-        <button className="bg-[#06278c]  hover:bg-white hover:text-[#06278c] hover:border-[#06278c] border-2 font-semibold py-2 px-6 rounded-2xl   w-40  text-white text-xs mt-auto mr-4 mb-4">
+        <Link
+          href="/actualites/[key]"
+          as={`/actualites/${postId}`}
+          className="inline-block bg-[#06278c] hover:bg-white hover:text-[#06278c] hover:border-[#06278c] border-2 font-semibold py-2 px-6 rounded-2xl text-white text-xs mt-auto mr-4 mb-4"
+        >
           En savoir plus
-        </button>
+        </Link>
       </div>
     </div>
   );

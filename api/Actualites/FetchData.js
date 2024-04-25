@@ -79,7 +79,7 @@ export default function FetchPosts() {
           />
         </div>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 xl:grid-cols-4 gap-4 w-full">
+      <div className="grid grid-cols-4 sm:grid-cols-1 md:grid-cols-3 xl:grid-cols-4 gap-4">
         {loading && <p>Loading...</p>}
         {!loading &&
           filteredData
@@ -87,10 +87,12 @@ export default function FetchPosts() {
             .map((post) => (
               <Card
                 key={post.id}
+                postId={post.id}
                 imageUrl={post.postImage}
                 title={post.description}
                 Date={post.postDate}
               />
+             
             ))}
       </div>
 

@@ -1,30 +1,55 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { FetchPost } from "../../../api/Actualites/FetchPost";
 import { InsertComments } from "../../../api/Actualites/InsertComments";
 
-export default function FacebookPostComponent(post) {
+export default function FacebookPostComponent({ postID }) {
+  const [post, setPost] = useState(null);
+  useEffect(() => {
+    const fetchPostData = async () => {
+      try {
+        const postData = await FetchPost(postID);
+        setPost(postData);
+      } catch (error) {
+        console.error("Error fetching post:", error.message);
+      }
+    };
+
+    fetchPostData();
+  }, [postID]);
+
+  useEffect(() => {
+    // After post data is fetched and post state is updated, initialize Facebook SDK
+    if (post) {
+      window.FB && window.FB.XFBML.parse();
+    }
+  }, [post]);
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-1">
       <div className="text-xl md:text-4xl w-full text-violet-950 mt-10">
-        {post.description}
+        {post && post.description}
       </div>
-      <div
-        className="fb-post mt-5 sm:w-20 border-2"
-        data-href={post.facebookUrl}
-        data-show-text="true"
-      ></div>
+      {post && ( // Render the post div only when post is not null
+        <div
+          className="fb-post mt-5 sm:w-20 border-2"
+          data-href={post.postUrl}
+          data-show-text="true"
+        ></div>
+      )}
       <div className="mt-10 text-violet-950">
         <hr />
-        By Noaman Makhlouf | Date | Actualité, Évènement | 0 Comments
+        By Noaman Makhlouf | Date | Actualité, Évènement | 0 Comments |{" "}
+        {post && post.id}
         <hr className="mb-5" />
         <div>
-          <MyForm />
+          <MyForm postID={postID} />
         </div>
       </div>
     </div>
   );
 }
 
-function MyForm() {
+function MyForm({ postID }) {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -43,8 +68,8 @@ function MyForm() {
   const handleSubmit = (e) => {
     e.preventDefault();
     InsertComments({
-      postId: 3,
-      content: formData.Comment, // Corrected from formData.className
+      postId: postID, // Use the postID prop
+      content: formData.Comment,
       name: formData.name,
       email: formData.email,
       website: formData.website,
