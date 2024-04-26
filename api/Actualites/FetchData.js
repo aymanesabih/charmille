@@ -3,9 +3,6 @@ import React, { useState, useEffect } from "react";
 import { supabase } from "../../utils/supabaseClient";
 import Card from "../../app/components/ui/Atcualite/PostCard";
 import TextField from "@mui/material/TextField";
-import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
-import IconButton from "@mui/material/IconButton";
-import { Button } from "@radix-ui/themes";
 
 const itemsPerPage = 8;
 
@@ -79,7 +76,7 @@ export default function FetchPosts() {
           />
         </div>
       </div>
-      <div className="grid grid-cols-4 sm:grid-cols-1 md:grid-cols-3 xl:grid-cols-4 gap-4">
+      <div className="grid  sm:grid-cols-1 grid-cols-1 md:grid-cols-3 xl:grid-cols-4 gap-4">
         {loading && <p>Loading...</p>}
         {!loading &&
           filteredData

@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { FetchPost } from "../../../api/Actualites/FetchPost";
 import { InsertComments } from "../../../api/Actualites/InsertComments";
-import Comments from "./Comment";
+import Comments from "./Comments";
 import { FetchComments } from "../../../api/Actualites/FetchComments";
+import Skeleton from "@mui/material/Skeleton";
+import Stack from "@mui/material/Stack";
 
 export default function FacebookPostComponent({ postID }) {
   const [post, setPost] = useState(null);
+  const [loading, setLoading] = useState(true);
   useEffect(() => {
     const fetchPostData = async () => {
       try {
@@ -23,6 +26,7 @@ export default function FacebookPostComponent({ postID }) {
     // After post data is fetched and post state is updated, initialize Facebook SDK
     if (post) {
       window.FB && window.FB.XFBML.parse();
+      setLoading(false);
     }
   }, [post]);
 
@@ -32,7 +36,7 @@ export default function FacebookPostComponent({ postID }) {
       try {
         const commentData = await FetchComments(3);
         setcomment(commentData);
-        console.log(commentData);
+        console.log("set comments : ", commentData);
       } catch (error) {
         console.error("Error fetching comment:", error.message);
       }
@@ -43,23 +47,47 @@ export default function FacebookPostComponent({ postID }) {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-1">
-      <div className="text-xl md:text-4xl w-full text-violet-950 mt-10">
-        {post && post.description}
-      </div>
-      {post && ( // Render the post div only when post is not null
-        <div
-          className="fb-post mt-5 sm:w-20 border-2"
-          data-href={post.postUrl}
-          data-show-text="true"
-        ></div>
+      {loading ? (
+        <Stack spacing={1}>
+          {/* For variant="text", adjust the height via font-size */}
+          <Skeleton animation="wave " className="w-4/6" height={60} />
+          <Skeleton variant="rectangular" className="w-4/6" height={400} />
+        </Stack>
+      ) : (
+        <div className="text-xl md:text-4xl w-full text-violet-950 mt-10">
+          {post && post.description}
+          {console.log("post type ", post && post.postType)}
+          {post && (
+            <div className="mt-5">
+              {post.postType === "Facebook" && (
+                <div
+                  className="fb-post sm:w-20 border-2"
+                  data-href={post.postUrl}
+                  data-show-text="true"
+                ></div>
+              )}
+              {post.postType === "Pdf" && (
+                <div className="flex justify-center items-center">
+                  <embed
+                    className="max-w-full max-h-full"
+                    width="842"
+                    height="842"
+                    src={post.postUrl}
+                  />
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       )}
+
       <div className="mt-10 text-violet-950">
         <hr />
         By Noaman Makhlouf | {post && post.postDate} | Actualité, Évènement |{" "}
         {comment && comment.length} Comment
         <hr className="mb-5" />
         <div>
-          <Comments comment={comment} />
+          <Comments comments={comment} />
           <MyForm postID={postID} />
         </div>
       </div>
@@ -161,7 +189,7 @@ function MyForm({ postID }) {
 
         <button
           type="submit"
-          className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg"
+          className=" bg-violet-950 hover:text-violet-950 hover:bg-white hover:border-2 border-violet-950 text-white font-bold py-2 px-4 rounded-lg"
         >
           Post a comment
         </button>

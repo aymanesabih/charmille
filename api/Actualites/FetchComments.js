@@ -12,7 +12,7 @@ export async function FetchComments(postId) {
     if (error) {
       return error.message;
     } else {
-      return data[0];
+      return data;
     }
   } catch (error) {
     return error.message;

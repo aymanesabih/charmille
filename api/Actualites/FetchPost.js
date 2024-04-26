@@ -9,9 +9,9 @@ export async function FetchPost(postId) {
       .eq("id", postId);
 
     if (error) {
-      throw error; // Throw the error instead of returning it
+      throw error;
     } else {
-      return data[0]; // Assuming postId is unique, return the first item in data array
+      return data[0];
     }
   } catch (error) {
     // Handle error
