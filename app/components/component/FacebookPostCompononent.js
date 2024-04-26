@@ -50,18 +50,27 @@ export default function FacebookPostComponent({ postID }) {
       {loading ? (
         <Stack spacing={1}>
           {/* For variant="text", adjust the height via font-size */}
-          <Skeleton animation="wave " className="w-4/6" height={60} />
-          <Skeleton variant="rectangular" className="w-4/6" height={400} />
+
+          <Skeleton animation="wave" className="w-4/6 mt-10" height={60} />
+
+          <div>
+            <Skeleton
+              variant="rectangular"
+              className=" ml-20"
+              width={842}
+              height={842}
+            />
+          </div>
         </Stack>
       ) : (
         <div className="text-xl md:text-4xl w-full text-violet-950 mt-10">
           {post && post.description}
           {console.log("post type ", post && post.postType)}
           {post && (
-            <div className="mt-5">
+            <div className="mt-5  border-non">
               {post.postType === "Facebook" && (
                 <div
-                  className="fb-post sm:w-20 border-2"
+                  className="fb-post sm:w-20 border-none w-full"
                   data-href={post.postUrl}
                   data-show-text="true"
                 ></div>
@@ -69,7 +78,7 @@ export default function FacebookPostComponent({ postID }) {
               {post.postType === "Pdf" && (
                 <div className="flex justify-center items-center">
                   <embed
-                    className="max-w-full max-h-full"
+                    className=""
                     width="842"
                     height="842"
                     src={post.postUrl}
@@ -87,7 +96,42 @@ export default function FacebookPostComponent({ postID }) {
         {comment && comment.length} Comment
         <hr className="mb-5" />
         <div>
-          <Comments comments={comment} />
+          {loading ? (
+            <div>
+              <div className="flex flex-row w-full">
+                <Skeleton
+                  variant="text"
+                  className="  "
+                  width={100}
+                  height={70}
+                />
+                <Skeleton
+                  variant="text"
+                  className=" ml-2 mt-6 w-5/6"
+                  height={20}
+                />
+              </div>
+              <div className="flex flex-row">
+                <div>
+                  <Skeleton
+                    variant="circular"
+                    width={65}
+                    height={65}
+                    className=" mt-3"
+                  />
+                </div>
+
+                <Skeleton
+                  variant="text"
+                  sx={{ fontSize: "2rem" }}
+                  className="m-1   w-96  h-16 mt-2 ml-5"
+                />
+              </div>
+            </div>
+          ) : (
+            <Comments comments={comment} />
+          )}
+
           <MyForm postID={postID} />
         </div>
       </div>

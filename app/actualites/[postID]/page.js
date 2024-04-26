@@ -4,10 +4,11 @@ import { FetchComments } from "../../../api/Actualites/FetchComments";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-
+import { NotFound } from "../../not-found";
 export default function FacebookPost({ params }) {
   const router = useRouter();
-
+  params["postID"] = Number(params["postID"]);
+  console.log("Post id : ", params["postID"]);
   useEffect(() => {
     // Create a <script> element
     const script = document.createElement("script");
@@ -26,13 +27,16 @@ export default function FacebookPost({ params }) {
       document.body.removeChild(script);
     };
   }, []); // Empty dependency array ensures the effect runs only once
-
-  return (
-    <main className=" bg-white">
-      <div className=" mx-20">
-        <div id="fb-root"></div>
-        <FacebookPostCompononent postID={params.postID} />
-      </div>
-    </main>
-  );
+  if (isNaN(params["postID"])) {
+    return <NotFound />;
+  } else {
+    return (
+      <main className=" bg-white">
+        <div className=" mx-20">
+          <div id="fb-root"></div>
+          <FacebookPostCompononent postID={params.postID} />
+        </div>
+      </main>
+    );
+  }
 }
