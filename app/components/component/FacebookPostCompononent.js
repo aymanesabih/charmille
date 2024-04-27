@@ -50,15 +50,13 @@ export default function FacebookPostComponent({ postID }) {
       {loading ? (
         <Stack spacing={1}>
           {/* For variant="text", adjust the height via font-size */}
+          <Skeleton animation="wave" className="w-full mt-10" />
 
-          <Skeleton animation="wave" className="w-4/6 mt-10" height={60} />
-
-          <div>
+          <div className="flex items-center">
             <Skeleton
               variant="rectangular"
-              className=" ml-20"
-              width={842}
-              height={842}
+              className="flex-grow "
+              height={400}
             />
           </div>
         </Stack>
@@ -67,22 +65,47 @@ export default function FacebookPostComponent({ postID }) {
           {post && post.description}
           {console.log("post type ", post && post.postType)}
           {post && (
-            <div className="mt-5  border-non">
+            <div className="mt-5  border-non ">
               {post.postType === "Facebook" && (
-                <div
-                  className="fb-post sm:w-20 border-none w-full"
-                  data-href={post.postUrl}
-                  data-show-text="true"
-                ></div>
+                <div className="flex justify-center">
+                  <div className="w-full md:w-2/3 lg:w-1/2 xl:w-1/3">
+                    <div
+                      className="fb-post border-none w-full"
+                      data-href={post.postUrl}
+                      data-show-text="true"
+                    ></div>
+                  </div>
+                </div>
               )}
               {post.postType === "Pdf" && (
-                <div className="flex justify-center items-center">
-                  <embed
-                    className=""
-                    width="842"
-                    height="842"
-                    src={post.postUrl}
-                  />
+                <div
+                  style={{ width: "100%", maxWidth: "800px", margin: "0 auto" }}
+                >
+                  <div
+                    style={{
+                      position: "relative",
+                      width: "100%",
+                      height: 0,
+                      paddingBottom: "56.25%" /* 16:9 aspect ratio */,
+                    }}
+                  >
+                    <iframe
+                      style={{
+                        position: "absolute",
+                        width: "100%",
+                        height: "100%",
+                        top: 0,
+                        left: 0,
+                      }}
+                      className="border-none"
+                      src={`https://www.facebook.com/plugins/post.php?href=${encodeURIComponent(
+                        post.postUrl
+                      )}&show_text=true`}
+                      frameborder="0"
+                      allowfullscreen="true"
+                      allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
+                    ></iframe>
+                  </div>
                 </div>
               )}
             </div>
@@ -176,13 +199,13 @@ function MyForm({ postID }) {
     <div>
       <form
         onSubmit={handleSubmit}
-        className="bg-gray-100 p-6 rounded-lg shadow-lg"
+        className=" p-4 md:p-6 rounded-lg shadow-lg"
       >
         <div className="text-lg font-bold mb-4">Leave a comment</div>
 
         <hr className="mb-4" />
 
-        <div className="bg-white p-4 rounded-lg mb-4">
+        <div className="bg-gray-100 p-2 md:p-4 rounded-lg mb-4">
           <textarea
             id="Comment"
             name="Comment"
@@ -190,41 +213,41 @@ function MyForm({ postID }) {
             onChange={handleChange}
             required
             placeholder="Comment..."
-            className="bg-transparent focus:border-none ml-2 h-36 text-gray-800 focus:outline-none w-full resize-none"
+            className="bg-transparent focus:border-none ml-2 h-20 md:h-36 text-gray-800 focus:outline-none w-full resize-none"
           ></textarea>
         </div>
-        <div className="flex flex-wrap -mx-2">
-          <div className="w-full md:w-1/3 px-2 mb-4">
+        <div className="flex flex-wrap mx-2">
+          <div className="w-full md:w-1/2 lg:w-1/3 px-2 mb-4">
             <input
               type="text"
               id="name"
               name="name"
               placeholder="Name (required)"
-              className="bg-white h-10 focus:border-none ml-2 text-gray-800 focus:outline-none w-full border rounded-lg px-4"
+              className="bg-gray-100 h-10 md:h-12 focus:border-none ml-2 text-gray-800 focus:outline-none w-full border rounded-lg px-4"
               value={formData.name}
               onChange={handleChange}
               required
             />
           </div>
-          <div className="w-full md:w-1/3 px-2 mb-4">
+          <div className="w-full md:w-1/2 lg:w-1/3 px-2 mb-4">
             <input
               type="email"
               id="email"
               name="email"
               placeholder="Email (required)"
-              className="bg-white h-10 focus:border-none ml-2 text-gray-800 focus:outline-none w-full border rounded-lg px-4"
+              className="bg-gray-100 h-10 md:h-12 focus:border-none ml-2 text-gray-800 focus:outline-none w-full border rounded-lg px-4"
               value={formData.email}
               onChange={handleChange}
               required
             />
           </div>
-          <div className="w-full md:w-1/3 px-2 mb-4">
+          <div className="w-full md:w-1/2 lg:w-1/3 px-2 mb-4">
             <input
               type="text"
               id="website"
               name="website"
               placeholder="Website (optional)"
-              className="bg-white h-10 focus:border-none ml-2 text-gray-800 focus:outline-none w-full border rounded-lg px-4"
+              className="bg-gray-100 h-10 md:h-12 focus:border-none ml-2 text-gray-800 focus:outline-none w-full border rounded-lg px-4"
               value={formData.website}
               onChange={handleChange}
             />
@@ -233,7 +256,7 @@ function MyForm({ postID }) {
 
         <button
           type="submit"
-          className=" bg-violet-950 hover:text-violet-950 hover:bg-white hover:border-2 border-violet-950 text-white font-bold py-2 px-4 rounded-lg"
+          className="bg-violet-950 hover:text-violet-950 hover:bg-white hover:border-2 border-violet-950 text-white font-bold py-2 px-4 rounded-lg"
         >
           Post a comment
         </button>

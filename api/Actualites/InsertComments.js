@@ -27,7 +27,6 @@ export async function InsertComments({
         text: "Something went wrong!",
         timer: 5000,
         timerProgressBar: true,
-        width: 500,
         heightAuto: true,
       });
     } else {
@@ -37,7 +36,6 @@ export async function InsertComments({
         title: "Your comment is awaiting moderation",
         timer: 5000,
         timerProgressBar: true,
-        width: 200,
         heightAuto: true,
       });
     }
