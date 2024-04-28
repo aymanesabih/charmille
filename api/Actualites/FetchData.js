@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { supabase } from "../../utils/supabaseClient";
-import Card from "../../app/components/ui/Atcualite/PostCard";
+import Card from "../../components/ui/Atcualite/PostCard";
 import TextField from "@mui/material/TextField";
 import { Skeleton } from "@mui/material";
 const itemsPerPage = 8;

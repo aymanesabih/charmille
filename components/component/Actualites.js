@@ -1,6 +1,6 @@
 "use client";
 import Image from "next/image";
-import Card from "../../../components/ui/Atcualite/PostCard";
+import Card from "../ui/Atcualite/PostCard";
 import { useState } from "react";
 import FetchPosts from "../../../api/Actualites/FetchData";
 
