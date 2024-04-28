@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
-import { LoadingPayer } from './loading-payer';
+import { LoadingPayer } from '../../../components/component/loading-payer';
 import { supabase } from '../../../utils/supabaseClient';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
