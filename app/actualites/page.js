@@ -1,5 +1,4 @@
-import Actualites from "../components/component/Actualites";
-
+import Actualites from "../../components/component/Actualites";
 export default function HomePageActualites() {
   console.log("Actualites");
   return (

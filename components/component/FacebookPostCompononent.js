@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { FetchPost } from "../../../api/Actualites/FetchPost";
-import { InsertComments } from "../../../api/Actualites/InsertComments";
+import { FetchPost } from "../../api/Actualites/FetchPost";
+import { InsertComments } from "../../api/Actualites/InsertComments";
 import Comments from "./Comments";
-import { FetchComments } from "../../../api/Actualites/FetchComments";
+import { FetchComments } from "../../api/Actualites/FetchComments";
 import Skeleton from "@mui/material/Skeleton";
 import Stack from "@mui/material/Stack";
 
