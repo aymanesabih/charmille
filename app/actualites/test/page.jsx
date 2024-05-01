@@ -1,6 +1,6 @@
 "use client";
 import * as React from "react";
-import { DataGrid, renderActionsCell } from "@mui/x-data-grid";
+import { DataGrid } from "@mui/x-data-grid";
 import { useState, useEffect } from "react";
 import { supabase } from "../../../utils/supabaseClient";
 import { Button } from "@mui/material";
@@ -13,8 +13,105 @@ import Skeleton from "@mui/material/Skeleton";
 export default function DataTable1() {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
+  function extractName(imageLink) {
+    const parts = imageLink.split("/");
+    const imageName = parts[parts.length - 1];
+    return imageName;
+  }
+  const HandleDeleteImage = async (ImgName) => {
+    console.log("delete", [`Images/${ImgName}`]);
+    try {
+      const { data, error } = await supabase.storage
+        .from("Posts")
+        .remove([`Images/${ImgName}`]);
+      if (error) {
+        throw error;
+      }
+      console.log("Deletion Success");
+    } catch (error) {
+      throw error;
+    }
+  };
+  const HandleDeletePdf = async (pdfName) => {
+    console.log("delete", [`Images/${pdfName}`]);
+    try {
+      const { data, error } = await supabase.storage
+        .from("Posts")
+        .remove([`Pdfs/${pdfName}`]);
+      if (error) {
+        throw error;
+      }
+      console.log("Deletion Success");
+    } catch (error) {
+      throw error;
+    }
+  };
+  async function DeletePost(post) {
+    console.log("post strcuture ", post);
+    Swal.fire({
+      title: "Are you sure?",
+      text: "You won't be able to revert this!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, delete it!",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          let imageName = extractName(post.row.image);
+          const deleteImage = await HandleDeleteImage(imageName);
 
+          if (post.row.postType == "Pdf") {
+            let pdfName = extractName(post.row.postUrl);
+            const deletePdf = HandleDeletePdf(pdfName);
+          }
+          console.log("deleting", post.row.image);
+          const { error } = await supabase
+            .from("post")
+            .delete()
+            .eq("id", post.id);
+
+          if (error) {
+            Swal.fire({
+              icon: "error",
+              title: "Oops...",
+              text: error.message,
+              timer: 5000,
+              timerProgressBar: true,
+            });
+          }
+
+          Swal.fire({
+            title: "Deleted!",
+            text: "Your file has been deleted.",
+            icon: "success",
+          });
+          const updatedRows = rows.filter((row) => row.id !== post.id);
+          setRows(updatedRows);
+        } catch (error) {
+          Swal.fire({
+            icon: "error",
+            title: "Oops...",
+            text: error.message,
+            timer: 5000,
+            timerProgressBar: true,
+          });
+        }
+      }
+    });
+  }
+  function extractName(url) {
+    if (!url) {
+      return "";
+    }
+    const parts = url.split("/");
+    const lastPart = parts[parts.length - 1];
+    const filename = lastPart.split("?")[0];
+    return filename;
+  }
   const fetchData = async () => {
+    setLoading(true);
     console.log("Fetching data...");
     try {
       let { data, error } = await supabase.from("post").select("*");
@@ -34,7 +131,8 @@ export default function DataTable1() {
           image: post.postImage,
           postDate: post.postDate,
           postType: post.postType,
-          postUrl: post.postUrl,
+          postUrl:
+            post.postType == "Pdf" ? extractName(post.postUrl) : post.postUrl,
         }))
       );
       setLoading(false);
@@ -48,86 +146,6 @@ export default function DataTable1() {
   }, []);
   const getRowHeight = () => 100;
 
-  const columns1 = [
-    {
-      field: "id",
-      headerName: "ID",
-      minWidth: 70,
-      flex: 0.1,
-      sort: "desc",
-      renderCell: (params) => (
-        <div className="flex justify-center space-x-4 mt-9">
-          <Skeleton variant="rectangular" width={25} height={25} />
-        </div>
-      ),
-    },
-    {
-      field: "description",
-      headerName: "Description",
-      minWidth: 230,
-      flex: 1,
-      renderCell: (params) => (
-        <div className="flex justify-center space-x-4 mt-9">
-          <Skeleton variant="rectangular" width={170} height={20} />
-        </div>
-      ),
-    },
-    {
-      field: "image",
-      headerName: "Image",
-      minWidth: 130,
-      flex: 0.5,
-      renderCell: (params) => (
-        <Skeleton variant="rectangular" className="" width={140} height={120} />
-      ),
-    },
-    {
-      field: "postDate",
-      headerName: "Post Date",
-      minWidth: 10,
-      flex: 0.5,
-      renderCell: (params) => (
-        <div className="flex justify-center space-x-4 mt-9">
-          <Skeleton variant="rectangular" width={100} height={20} />
-        </div>
-      ),
-    },
-    {
-      field: "postType",
-      headerName: "Post Type",
-      minWidth: 50,
-      flex: 0.5,
-      renderCell: (params) => (
-        <div className="flex justify-center space-x-4 mt-9">
-          <Skeleton variant="rectangular" width={100} height={20} />
-        </div>
-      ),
-    },
-    {
-      field: "postUrl",
-      headerName: "Post URL OR PDF ",
-      minWidth: 130,
-      flex: 0.5,
-      renderCell: (params) => (
-        <div className="flex justify-center space-x-4 mt-9">
-          <Skeleton variant="rectangular" width={160} height={20} />
-        </div>
-      ),
-    },
-    {
-      field: "Actions",
-      headerName: "Actions",
-      minWidth: 130,
-      flex: 0.5,
-      sortable: false,
-      renderCell: (params) => (
-        <div className="flex justify-center space-x-4 mt-9">
-          <Skeleton variant="rectangular" width={100} height={40} />
-          <Skeleton variant="rectangular" width={100} height={40} />
-        </div>
-      ),
-    },
-  ];
   const columns = [
     { field: "id", headerName: "ID", minWidth: 70, flex: 0.1, sort: "desc" },
     { field: "description", headerName: "Description", minWidth: 230, flex: 1 },
@@ -228,6 +246,86 @@ export default function DataTable1() {
       postUrl: "https://example.com",
     },
   ];
+  const columns1 = [
+    {
+      field: "id",
+      headerName: "ID",
+      minWidth: 70,
+      flex: 0.1,
+      sort: "desc",
+      renderCell: (params) => (
+        <div className="flex justify-center space-x-4 mt-9">
+          <Skeleton variant="rectangular" width={25} height={25} />
+        </div>
+      ),
+    },
+    {
+      field: "description",
+      headerName: "Description",
+      minWidth: 230,
+      flex: 1,
+      renderCell: (params) => (
+        <div className="flex justify-center space-x-4 mt-9">
+          <Skeleton variant="rectangular" width={170} height={20} />
+        </div>
+      ),
+    },
+    {
+      field: "image",
+      headerName: "Image",
+      minWidth: 130,
+      flex: 0.5,
+      renderCell: (params) => (
+        <Skeleton variant="rectangular" className="" width={140} height={120} />
+      ),
+    },
+    {
+      field: "postDate",
+      headerName: "Post Date",
+      minWidth: 10,
+      flex: 0.5,
+      renderCell: (params) => (
+        <div className="flex justify-center space-x-4 mt-9">
+          <Skeleton variant="rectangular" width={100} height={20} />
+        </div>
+      ),
+    },
+    {
+      field: "postType",
+      headerName: "Post Type",
+      minWidth: 50,
+      flex: 0.5,
+      renderCell: (params) => (
+        <div className="flex justify-center space-x-4 mt-9">
+          <Skeleton variant="rectangular" width={100} height={20} />
+        </div>
+      ),
+    },
+    {
+      field: "postUrl",
+      headerName: "Post URL OR PDF ",
+      minWidth: 130,
+      flex: 0.5,
+      renderCell: (params) => (
+        <div className="flex justify-center space-x-4 mt-9">
+          <Skeleton variant="rectangular" width={160} height={20} />
+        </div>
+      ),
+    },
+    {
+      field: "Actions",
+      headerName: "Actions",
+      minWidth: 130,
+      flex: 0.5,
+      sortable: false,
+      renderCell: (params) => (
+        <div className="flex justify-center space-x-4 mt-9">
+          <Skeleton variant="rectangular" width={100} height={40} />
+          <Skeleton variant="rectangular" width={100} height={40} />
+        </div>
+      ),
+    },
+  ];
 
   return (
     <div className="bg-white">
@@ -261,4 +359,48 @@ export default function DataTable1() {
       </div>
     </div>
   );
+}
+
+export async function InsertPost(post) {
+  console.log(post);
+  try {
+    // Insert form data into Supabase table
+    const { data, error } = await supabase.from("post").insert([
+      {
+        postDate: post.postDate,
+        postImage: post.postImage,
+        postType: post.postType,
+        description: post.description,
+        postUrl: post.postUrl,
+      },
+    ]);
+    if (error) {
+      setMessage(error.message);
+      Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        text: "Something went wrong!",
+        timer: 5000,
+        timerProgressBar: true,
+        heightAuto: true,
+      });
+    } else {
+      // Display toast notification
+      Swal.fire({
+        icon: "success",
+        title: "The post created successfully",
+        timer: 5000,
+        timerProgressBar: true,
+        heightAuto: true,
+      });
+    }
+  } catch (error) {
+    Swal.fire({
+      icon: "error",
+      title: "Oops...",
+      text: "Something went wrong!",
+      timer: 5000,
+      timerProgressBar: true,
+    });
+  }
 }

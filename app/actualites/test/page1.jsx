@@ -12,11 +12,12 @@ import Skeleton from "@mui/material/Skeleton";
 
 export default function DataTable1() {
   const [rows, setRows] = useState([]);
-  const [loading, setLoading] = function extractName(imageLink) {
+  const [loading, setLoading] = useState(true);
+  function extractName(imageLink) {
     const parts = imageLink.split("/");
     const imageName = parts[parts.length - 1];
     return imageName;
-  };
+  }
   const HandleDeleteImage = async (ImgName) => {
     console.log("delete", [`Images/${ImgName}`]);
     try {
@@ -110,6 +111,7 @@ export default function DataTable1() {
     return filename;
   }
   const fetchData = async () => {
+    setLoading(true);
     console.log("Fetching data...");
     try {
       let { data, error } = await supabase.from("post").select("*");
@@ -133,6 +135,7 @@ export default function DataTable1() {
             post.postType == "Pdf" ? extractName(post.postUrl) : post.postUrl,
         }))
       );
+      setLoading(false);
     } catch (error) {
       console.error("Error testing Supabase connection:", error.message);
     }
