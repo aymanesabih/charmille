@@ -34,7 +34,7 @@ export default function FacebookPostComponent({ postID }) {
   useEffect(() => {
     const fetchcommentData = async () => {
       try {
-        const commentData = await FetchComments(3);
+        const commentData = await FetchComments(postID);
         setcomment(commentData);
         console.log("set comments : ", commentData);
       } catch (error) {
@@ -67,45 +67,29 @@ export default function FacebookPostComponent({ postID }) {
           {post && (
             <div className="mt-5  border-non ">
               {post.postType === "Facebook" && (
-                <div className="flex justify-center">
-                  <div className="w-full md:w-2/3 lg:w-1/2 xl:w-1/3">
-                    <div
-                      className="fb-post border-none w-full"
-                      data-href={post.postUrl}
-                      data-show-text="true"
-                    ></div>
-                  </div>
+                <div className="aspect-w-1 aspect-h-1 w-full overflow-hidden">
+                  <iframe
+                    src={post.postUrl}
+                    title="Iomt 2021"
+                    className="aspect-ratio w-full md:aspect-auto" // Maintain aspect ratio on smaller screens
+                    style={{ minHeight: "600px" }} // Set a minimum height for the iframe
+                  ></iframe>
                 </div>
               )}
               {post.postType === "Pdf" && (
-                <div
-                  style={{ width: "100%", maxWidth: "800px", margin: "0 auto" }}
-                >
-                  <div
-                    style={{
-                      position: "relative",
-                      width: "100%",
-                      height: 0,
-                      paddingBottom: "56.25%" /* 16:9 aspect ratio */,
-                    }}
-                  >
-                    <iframe
-                      style={{
-                        position: "absolute",
-                        width: "100%",
-                        height: "100%",
-                        top: 0,
-                        left: 0,
-                      }}
-                      className="border-none"
-                      src={`https://www.facebook.com/plugins/post.php?href=${encodeURIComponent(
-                        post.postUrl
-                      )}&show_text=true`}
-                      frameborder="0"
-                      allowfullscreen="true"
-                      allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
-                    ></iframe>
-                  </div>
+                <div className="aspect-w-1 aspect-h-1 w-full overflow-hidden">
+                  <iframe
+                    src={post.postUrl}
+                    title="MyPdf"
+                    className="aspect-ratio w-full md:aspect-auto" // Maintain aspect ratio on smaller screens
+                    style={{ minHeight: "600px" }} // Set a minimum height for the iframe
+                    onLoad={() =>
+                      setTimeout(() => {
+                        document.title = "MyPdf";
+                      }, 100)
+                    } // Set document title after a short delay
+                  ></iframe>
+                  a
                 </div>
               )}
             </div>

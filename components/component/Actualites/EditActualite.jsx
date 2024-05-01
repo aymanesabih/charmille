@@ -8,7 +8,7 @@ import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
 import MenuItem from "@mui/material/MenuItem";
-import { supabase } from "../../../../utils/supabaseClient";
+import { supabase } from "../../../utils/supabaseClient";
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import Swal from "sweetalert2";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";

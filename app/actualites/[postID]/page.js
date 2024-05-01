@@ -1,5 +1,5 @@
 "use client";
-import FacebookPostCompononent from "../../components/component/FacebookPostCompononent";
+import FacebookPostCompononent from "../../../components/component/Actualites/FacebookPostCompononent";
 import { FetchComments } from "../../../api/Actualites/FetchComments";
 import { useEffect } from "react";
 import { useRouter, notFound } from "next/navigation";

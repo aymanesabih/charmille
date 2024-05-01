@@ -6,8 +6,8 @@ import { supabase } from "../../../utils/supabaseClient";
 import { Button } from "@mui/material";
 import Swal from "sweetalert2";
 import RestartAltRoundedIcon from "@mui/icons-material/RestartAltRounded";
-import AddActualite from "../../components/component/Actualites/AddActualite";
-import EditActualite from "../../components/component/Actualites/EditActualite";
+import AddActualite from "../../../components/component/Actualites/AddActualite";
+import EditActualite from "../../../components/component/Actualites/EditActualite";
 import Skeleton from "@mui/material/Skeleton";
 
 export default function DataTable1() {
