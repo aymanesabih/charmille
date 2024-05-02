@@ -1,8 +1,8 @@
-import { Demandes } from "@/components/component/demands-list";
-import React from "react";
+// import { Demandes } from "@/components/component/demands-list";
+// import React from "react";
 
-function page() {
-  return <Demandes />;
-}
+// function page() {
+//   return <Demandes />;
+// }
 
-export default page;
+// export default page;
