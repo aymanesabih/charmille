@@ -56,6 +56,7 @@ export default function EditActualite({ CurrentPost, Onsave }) {
   function init() {
     setPostType(CurrentPost.row.postType);
     setImagePreview(CurrentPost.row.image);
+
     if (CurrentPost.row.postType == "Pdf") {
       setPdfFileName(extractName(CurrentPost.row.postUrl));
     }
@@ -81,7 +82,7 @@ export default function EditActualite({ CurrentPost, Onsave }) {
     return filename;
   }
   let imageUrL = CurrentPost.row.image;
-  let pdfUrl = "";
+  let pdfUrl = CurrentPost.row.postType == "Pdf" ? CurrentPost.row.postUrl : "";
   const [selectedFile, setSelectedFile] = useState(null);
   const Url = async (path) => {
     try {
@@ -106,6 +107,7 @@ export default function EditActualite({ CurrentPost, Onsave }) {
       if (error) {
         throw error;
       }
+      console.log("pdf url set ", data.publicUrl);
       pdfUrl = data.publicUrl;
     } catch (error) {
       throw error;
@@ -153,8 +155,6 @@ export default function EditActualite({ CurrentPost, Onsave }) {
         );
       }
       Url1(data.path);
-      setPdfFile(null);
-
       console.log("Upload Success pdf");
     } catch (error) {
       const deleteImage = await HandleDeleteImage();
@@ -258,7 +258,6 @@ export default function EditActualite({ CurrentPost, Onsave }) {
         color="primary"
         onClick={handleOpen}
         className="mr-5"
-        endIcon={<AddRoundedIcon />}
       >
         Edit
       </Button>
@@ -384,9 +383,10 @@ export default function EditActualite({ CurrentPost, Onsave }) {
     </React.Fragment>
   );
   async function UpdatePost(post) {
+    console.log("pdf url", pdfUrl);
     console.log(post);
+    console.log("url post ", CurrentPost.row);
     let postUrl = post.postType === "Pdf" ? pdfUrl : post.postUrl;
-
     const updatedFields = {};
     if (CurrentPost.row.postDate !== post.postDate) {
       updatedFields.postDate = post.postDate;

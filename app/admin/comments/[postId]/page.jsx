@@ -2,13 +2,35 @@
 import * as React from "react";
 import { DataGrid } from "@mui/x-data-grid";
 import { useState, useEffect } from "react";
-import { supabase } from "../../../utils/supabaseClient";
+import { supabase } from "../../../../utils/supabaseClient";
 import { Button } from "@mui/material";
 import Swal from "sweetalert2";
 import RestartAltRoundedIcon from "@mui/icons-material/RestartAltRounded";
 import Skeleton from "@mui/material/Skeleton";
+import { notFound } from "next/navigation";
+import { FetchPost } from "../../../../api/Actualites/FetchPost";
 
-export default function DataTable1() {
+export default function Comments({ params }) {
+  console.log("number format ", params["postId"]);
+  if (isNaN(Number(params["postId"]))) {
+    notFound();
+  }
+  const [post, setPost] = useState(null);
+  useEffect(() => {
+    const fetchPostData = async () => {
+      try {
+        const postData = await FetchPost(Number(params["postId"]));
+        setPost(postData);
+      } catch (error) {
+        console.error("Error fetching post:", error.message);
+        setPost(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPostData();
+  }, [params]);
   const [rows, setRows] = useState([]);
   function extractName(imageLink) {
     const parts = imageLink.split("/");
@@ -16,6 +38,12 @@ export default function DataTable1() {
     return imageName;
   }
   const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    if (!loading && post === null) {
+      notFound();
+    }
+  }, [loading, post]);
+
   const fetchData = async () => {
     setLoading(true);
     console.log("Fetching data...");
@@ -23,7 +51,7 @@ export default function DataTable1() {
       const { data, error } = await supabase
         .from("comments")
         .select("*")
-        .eq("postId", 65);
+        .eq("postId", Number(params["postId"]));
 
       if (error) {
         Swal.fire({
@@ -271,45 +299,49 @@ export default function DataTable1() {
       status: "Pending",
     },
   ];
-
   return (
     <div className="bg-white">
-      <div>
-        <div className="m-5 font-bold text-2xl">Gestions Des Postes</div>
-        <div className="flex flex-row ml-10 mb-5 w-fit">
-          <Button
-            variant="contained"
-            color="secondary"
-            startIcon={<RestartAltRoundedIcon />}
-            onClick={fetchData}
-          >
-            Refresh
-          </Button>
+      {post && (
+        <div>
+          <div className="m-5 font-bold text-2xl">
+            Gestions Des Commentaires
+          </div>
+          <div className="flex flex-row ml-10 mb-5 w-fit">
+            <Button
+              variant="contained"
+              color="secondary"
+              startIcon={<RestartAltRoundedIcon />}
+              onClick={fetchData}
+            >
+              Refresh
+            </Button>
+          </div>
+          <div style={{ height: "100%", width: "100%" }}>
+            <DataGrid
+              getRowHeight={getRowHeight}
+              rows={loading ? rows1 : rows}
+              columns={loading ? columns1 : columns}
+              initialState={{
+                pagination: {
+                  paginationModel: { page: 0, pageSize: 5 },
+                },
+              }}
+              pageSizeOptions={[5, 10]}
+              checkboxSelection
+            />
+          </div>
         </div>
-      </div>
-      <div style={{ height: "100%", width: "100%" }}>
-        <DataGrid
-          getRowHeight={getRowHeight}
-          rows={loading ? rows1 : rows}
-          columns={loading ? columns1 : columns}
-          initialState={{
-            pagination: {
-              paginationModel: { page: 0, pageSize: 5 },
-            },
-          }}
-          pageSizeOptions={[5, 10]}
-          checkboxSelection
-        />
-      </div>
+      )}
     </div>
   );
-  async function Accept(params) {
-    console.log(params);
+
+  async function Accept(params1) {
     try {
       const { data, error } = await supabase
         .from("comments")
         .update({ status: "Accepted" })
-        .eq("postId", 65);
+        .eq("postId", Number(params["postId"]))
+        .eq("id", params1.row.id);
       if (error) {
         console.error("Error accepting comment:", error.message);
         Swal.fire({
@@ -341,8 +373,7 @@ export default function DataTable1() {
       });
     }
   }
-  async function Delete(params) {
-    console.log(params);
+  async function Delete(params1) {
     Swal.fire({
       title: "Are you sure?",
       text: "You won't be able to revert this!",
@@ -357,8 +388,8 @@ export default function DataTable1() {
           const { data, error } = await supabase
             .from("comments")
             .delete()
-            .eq("postId", 65)
-            .eq("id", params.row.id);
+            .eq("postId", Number(params["postId"]))
+            .eq("id", params1.row.id);
           if (error) {
             console.error("Error accepting comment:", error.message);
             Swal.fire({

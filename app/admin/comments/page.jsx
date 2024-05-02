@@ -8,7 +8,7 @@ import Swal from "sweetalert2";
 import RestartAltRoundedIcon from "@mui/icons-material/RestartAltRounded";
 import Skeleton from "@mui/material/Skeleton";
 
-export default function DataTable1() {
+export default function Comments() {
   const [rows, setRows] = useState([]);
   function extractName(imageLink) {
     const parts = imageLink.split("/");
@@ -20,10 +20,7 @@ export default function DataTable1() {
     setLoading(true);
     console.log("Fetching data...");
     try {
-      const { data, error } = await supabase
-        .from("comments")
-        .select("*")
-        .eq("postId", 65);
+      const { data, error } = await supabase.from("comments").select("*");
 
       if (error) {
         Swal.fire({
@@ -37,6 +34,7 @@ export default function DataTable1() {
       setRows(
         data.map((comment) => ({
           id: comment.id,
+          Post_ID: comment.postId,
           content: comment.content,
           name: comment.name,
           Date: formatDate(comment.created_at),
@@ -73,6 +71,13 @@ export default function DataTable1() {
 
   const columns = [
     { field: "id", headerName: "ID", minWidth: 50, flex: 0.1, sort: "desc" },
+    {
+      field: "Post_ID",
+      headerName: "Post ID",
+      minWidth: 80,
+      flex: 0.1,
+      sort: "desc",
+    },
     {
       field: "Date",
       headerName: "Date",
@@ -139,6 +144,17 @@ export default function DataTable1() {
       renderCell: (params) => (
         <div className="flex justify-center space-x-4 mt-9">
           <Skeleton variant="rectangular" width={25} height={25} />
+        </div>
+      ),
+    },
+    {
+      field: "Post_ID",
+      headerName: "Post ID",
+      minWidth: 80,
+      flex: 0.1,
+      renderCell: (params) => (
+        <div className="flex justify-center space-x-4 mt-9">
+          <Skeleton variant="rectangular" width={30} height={30} />
         </div>
       ),
     },
@@ -275,7 +291,7 @@ export default function DataTable1() {
   return (
     <div className="bg-white">
       <div>
-        <div className="m-5 font-bold text-2xl">Gestions Des Postes</div>
+        <div className="m-5 font-bold text-2xl">Gestions Des Commentaires</div>
         <div className="flex flex-row ml-10 mb-5 w-fit">
           <Button
             variant="contained"
@@ -284,6 +300,14 @@ export default function DataTable1() {
             onClick={fetchData}
           >
             Refresh
+          </Button>
+          <Button
+            variant="contained"
+            color="error"
+            className="ml-5"
+            onClick={DeleteAll}
+          >
+            Delete All
           </Button>
         </div>
       </div>
@@ -303,13 +327,12 @@ export default function DataTable1() {
       </div>
     </div>
   );
-  async function Accept(params) {
-    console.log(params);
+  async function Accept(params1) {
     try {
       const { data, error } = await supabase
         .from("comments")
         .update({ status: "Accepted" })
-        .eq("postId", 65);
+        .eq("id", params1.row.id);
       if (error) {
         console.error("Error accepting comment:", error.message);
         Swal.fire({
@@ -341,7 +364,7 @@ export default function DataTable1() {
       });
     }
   }
-  async function Delete(params) {
+  async function Delete(params1) {
     console.log(params);
     Swal.fire({
       title: "Are you sure?",
@@ -357,8 +380,57 @@ export default function DataTable1() {
           const { data, error } = await supabase
             .from("comments")
             .delete()
-            .eq("postId", 65)
-            .eq("id", params.row.id);
+            .eq("id", params1.row.id);
+          if (error) {
+            console.error("Error accepting comment:", error.message);
+            Swal.fire({
+              icon: "error",
+              title: "Oops...",
+              text: "Something went wrong!",
+              timer: 5000,
+              timerProgressBar: true,
+              heightAuto: true,
+            });
+          }
+          Swal.fire({
+            icon: "success",
+            title: "The comment deleted successfully",
+            timer: 5000,
+            timerProgressBar: true,
+            heightAuto: true,
+          });
+          fetchData();
+        } catch (error) {
+          console.error("Error updating comment:", error.message);
+          Swal.fire({
+            icon: "error",
+            title: "Oops...",
+            text: "Something went wrong!",
+            timer: 5000,
+            timerProgressBar: true,
+            heightAuto: true,
+          });
+        }
+      }
+    });
+  }
+  async function DeleteAll(params1) {
+    Swal.fire({
+      title: "Are you sure?",
+      text: "You won't be able to revert this!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, delete it!",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          const { data, error } = await supabase
+            .from("comments")
+            .delete()
+            .eq("status", "Pending");
+
           if (error) {
             console.error("Error accepting comment:", error.message);
             Swal.fire({

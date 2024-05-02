@@ -89,7 +89,6 @@ export default function FacebookPostComponent({ postID }) {
                       }, 100)
                     } // Set document title after a short delay
                   ></iframe>
-                  a
                 </div>
               )}
             </div>

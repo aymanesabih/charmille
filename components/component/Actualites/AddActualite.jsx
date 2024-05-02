@@ -37,7 +37,7 @@ const VisuallyHiddenInput = styled("input")({
   whiteSpace: "nowrap",
   width: 1,
 });
-export default function AddActualite() {
+export default function AddActualite({ Onsave }) {
   const [open, setOpen] = React.useState(false);
   const handleClose = () => {
     setOpen(false);
@@ -349,7 +349,7 @@ export default function AddActualite() {
           heightAuto: true,
         });
       } else {
-        // Display toast notification
+        Onsave();
         Swal.fire({
           icon: "success",
           title: "The post created successfully",

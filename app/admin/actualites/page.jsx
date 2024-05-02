@@ -5,13 +5,51 @@ import { useState, useEffect } from "react";
 import { supabase } from "../../../utils/supabaseClient";
 import { Button } from "@mui/material";
 import Swal from "sweetalert2";
-import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import RestartAltRoundedIcon from "@mui/icons-material/RestartAltRounded";
+import AddActualite from "../../../components/component/Actualites/AddActualite";
+import EditActualite from "../../../components/component/Actualites/EditActualite";
+import Skeleton from "@mui/material/Skeleton";
+import ModeCommentIcon from "@mui/icons-material/ModeComment";
+import Link from "next/link";
 
 export default function DataTable1() {
   const [rows, setRows] = useState([]);
-
-  async function DeletePost(postId) {
+  const [loading, setLoading] = useState(true);
+  function extractName(imageLink) {
+    const parts = imageLink.split("/");
+    const imageName = parts[parts.length - 1];
+    return imageName;
+  }
+  const HandleDeleteImage = async (ImgName) => {
+    console.log("delete", [`Images/${ImgName}`]);
+    try {
+      const { data, error } = await supabase.storage
+        .from("Posts")
+        .remove([`Images/${ImgName}`]);
+      if (error) {
+        throw error;
+      }
+      console.log("Deletion Success");
+    } catch (error) {
+      throw error;
+    }
+  };
+  const HandleDeletePdf = async (pdfName) => {
+    console.log("delete", [`Images/${pdfName}`]);
+    try {
+      const { data, error } = await supabase.storage
+        .from("Posts")
+        .remove([`Pdfs/${pdfName}`]);
+      if (error) {
+        throw error;
+      }
+      console.log("Deletion Success");
+    } catch (error) {
+      throw error;
+    }
+  };
+  async function DeletePost(post) {
+    console.log("post strcuture ", post);
     Swal.fire({
       title: "Are you sure?",
       text: "You won't be able to revert this!",
@@ -23,31 +61,41 @@ export default function DataTable1() {
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
+          let imageName = extractName(post.row.image);
+          const deleteImage = await HandleDeleteImage(imageName);
+
+          if (post.row.postType == "Pdf") {
+            let pdfName = extractName(post.row.postUrl);
+            const deletePdf = HandleDeletePdf(pdfName);
+          }
+          console.log("deleting", post.row.image);
           const { error } = await supabase
             .from("post")
             .delete()
-            .eq("id", postId);
+            .eq("id", post.id);
+
           if (error) {
             Swal.fire({
               icon: "error",
               title: "Oops...",
-              text: "Something went wrong!",
+              text: error.message,
               timer: 5000,
               timerProgressBar: true,
             });
           }
+
           Swal.fire({
             title: "Deleted!",
             text: "Your file has been deleted.",
             icon: "success",
           });
-          const updatedRows = rows.filter((row) => row.id !== postId);
+          const updatedRows = rows.filter((row) => row.id !== post.id);
           setRows(updatedRows);
         } catch (error) {
           Swal.fire({
             icon: "error",
             title: "Oops...",
-            text: "Something went wrong!",
+            text: error.message,
             timer: 5000,
             timerProgressBar: true,
           });
@@ -55,38 +103,54 @@ export default function DataTable1() {
       }
     });
   }
+  function extractName(url) {
+    if (!url) {
+      return "";
+    }
+    const parts = url.split("/");
+    const lastPart = parts[parts.length - 1];
+    const filename = lastPart.split("?")[0];
+    return filename;
+  }
+  const fetchData = async () => {
+    setLoading(true);
+    console.log("Fetching data...");
+    try {
+      let { data, error } = await supabase.from("post").select("*");
+      if (error) {
+        Swal.fire({
+          icon: "error",
+          title: "Oops...",
+          text: "Something went wrong!",
+          timer: 5000,
+          timerProgressBar: true,
+        });
+      }
+      setRows(
+        data.map((post) => ({
+          id: post.id,
+          description: post.description,
+          image: post.postImage,
+          postDate: post.postDate,
+          postType: post.postType,
+          postUrl:
+            post.postType == "Pdf" ? extractName(post.postUrl) : post.postUrl,
+        }))
+      );
+      setLoading(false);
+    } catch (error) {
+      console.error("Error testing Supabase connection:", error.message);
+    }
+  };
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        let { data, error } = await supabase.from("post").select("*");
-        if (error) {
-          console.log(error);
-          throw error;
-        }
-        setRows(
-          data.map((post) => ({
-            id: post.id,
-            description: post.description,
-            image: post.postImage,
-            postDate: post.postDate,
-            postType: post.postType,
-            postUrl: post.postUrl,
-          }))
-        );
-      } catch (error) {
-        console.error("Error testing Supabase connection:", error.message);
-      }
-    };
-
     fetchData();
   }, []);
-
   const getRowHeight = () => 100;
 
   const columns = [
-    { field: "id", headerName: "ID", minWidth: 70, flex: 0.1 },
-    { field: "description", headerName: "Description", minWidth: 230, flex: 1 },
+    { field: "id", headerName: "ID", minWidth: 70, flex: 0.1, sort: "desc" },
+    { field: "description", headerName: "Description", minWidth: 130, flex: 1 },
     {
       field: "image",
       headerName: "Image",
@@ -112,7 +176,12 @@ export default function DataTable1() {
     },
     { field: "postDate", headerName: "Post Date", minWidth: 10, flex: 0.5 },
     { field: "postType", headerName: "Post Type", minWidth: 50, flex: 0.5 },
-    { field: "postUrl", headerName: "Post URL", minWidth: 130, flex: 0.5 },
+    {
+      field: "postUrl",
+      headerName: "Post URL OR PDF ",
+      minWidth: 130,
+      flex: 0.5,
+    },
     {
       field: "Actions",
       headerName: "Actions",
@@ -124,19 +193,167 @@ export default function DataTable1() {
           <Button
             variant="contained"
             color="error"
-            onClick={() => DeletePost(params.id)} // Pass a callback function to be executed onClick
+            onClick={() => DeletePost(params)} // Pass a callback function to be executed onClick
             style={{ display: "flex", alignItems: "center" }}
           >
             Delete
           </Button>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={() => handleEditAction(params)} // Call your edit function here
-            style={{ display: "flex", alignItems: "center" }}
+          <EditActualite CurrentPost={params} Onsave={fetchData} />
+        </div>
+      ),
+    },
+    {
+      field: "Comments",
+      headerName: "Comments",
+      minWidth: 130,
+      flex: 0.5,
+      sortable: false,
+      renderCell: (params) => (
+        <div className="flex justify-center space-x-4 mt-9">
+          <Link
+            href="/admin/comments/[key]"
+            as={`/admin/comments/${params.row.id}`}
+            className="inline-flex items-center bg-blue-600 hover:bg-white hover:text-blue-600 hover:border-blue-600 border-2 font-semibold py-2 px-6 rounded-2xl text-white text-xs mt-auto mr-4 mb-4"
           >
-            Edit
-          </Button>
+            <ModeCommentIcon className="mr-2" /> {/* Include the icon */}
+          </Link>
+        </div>
+      ),
+    },
+  ];
+  const rows1 = [
+    {
+      id: 1,
+      description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+      image: "https://via.placeholder.com/140x120",
+      postDate: "2024-05-01",
+      postType: "News",
+      postUrl: "https://example.com",
+    },
+    {
+      id: 2,
+      description:
+        "Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.",
+      image: "https://via.placeholder.com/140x120",
+      postDate: "2024-05-02",
+      postType: "Blog",
+      postUrl: "https://example.com",
+    },
+    {
+      id: 3,
+      description: "Nullam quis risus eget urna mollis ornare vel eu leo.",
+      image: "https://via.placeholder.com/140x120",
+      postDate: "2024-05-03",
+      postType: "Article",
+      postUrl: "https://example.com",
+    },
+    {
+      id: 4,
+      description:
+        "Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh.",
+      image: "https://via.placeholder.com/140x120",
+      postDate: "2024-05-04",
+      postType: "Event",
+      postUrl: "https://example.com",
+    },
+    {
+      id: 5,
+      description:
+        "Maecenas sed diam eget risus varius blandit sit amet non magna.",
+      image: "https://via.placeholder.com/140x120",
+      postDate: "2024-05-05",
+      postType: "Tutorial",
+      postUrl: "https://example.com",
+    },
+  ];
+  const columns1 = [
+    {
+      field: "id",
+      headerName: "ID",
+      minWidth: 70,
+      flex: 0.1,
+      sort: "desc",
+      renderCell: (params) => (
+        <div className="flex justify-center space-x-4 mt-9">
+          <Skeleton variant="rectangular" width={25} height={25} />
+        </div>
+      ),
+    },
+    {
+      field: "description",
+      headerName: "Description",
+      minWidth: 230,
+      flex: 1,
+      renderCell: (params) => (
+        <div className="flex justify-center space-x-4 mt-9">
+          <Skeleton variant="rectangular" width={170} height={20} />
+        </div>
+      ),
+    },
+    {
+      field: "image",
+      headerName: "Image",
+      minWidth: 130,
+      flex: 0.5,
+      renderCell: (params) => (
+        <Skeleton variant="rectangular" className="" width={140} height={120} />
+      ),
+    },
+    {
+      field: "postDate",
+      headerName: "Post Date",
+      minWidth: 10,
+      flex: 0.5,
+      renderCell: (params) => (
+        <div className="flex justify-center space-x-4 mt-9">
+          <Skeleton variant="rectangular" width={100} height={20} />
+        </div>
+      ),
+    },
+    {
+      field: "postType",
+      headerName: "Post Type",
+      minWidth: 50,
+      flex: 0.5,
+      renderCell: (params) => (
+        <div className="flex justify-center space-x-4 mt-9">
+          <Skeleton variant="rectangular" width={100} height={20} />
+        </div>
+      ),
+    },
+    {
+      field: "postUrl",
+      headerName: "Post URL OR PDF ",
+      minWidth: 130,
+      flex: 0.5,
+      renderCell: (params) => (
+        <div className="flex justify-center space-x-4 mt-9">
+          <Skeleton variant="rectangular" width={160} height={20} />
+        </div>
+      ),
+    },
+    {
+      field: "Actions",
+      headerName: "Actions",
+      minWidth: 130,
+      flex: 0.5,
+      sortable: false,
+      renderCell: (params) => (
+        <div className="flex justify-center space-x-4 mt-9">
+          <Skeleton variant="rectangular" width={100} height={40} />
+          <Skeleton variant="rectangular" width={100} height={40} />
+        </div>
+      ),
+    },
+    {
+      field: "Comments",
+      headerName: "Comments",
+      minWidth: 130,
+      flex: 0.5,
+      sortable: false,
+      renderCell: (params) => (
+        <div className="flex justify-center space-x-4 mt-9">
+          <Skeleton variant="rectangular" width={100} height={40} />
         </div>
       ),
     },
@@ -147,20 +364,12 @@ export default function DataTable1() {
       <div>
         <div className="m-5 font-bold text-2xl">Gestions Des Postes</div>
         <div className="flex flex-row ml-10 mb-5 w-fit">
-          <Button
-            variant="contained"
-            color="success"
-            onClick={() => handleEditAction(params)}
-            className="mr-5" // Add margin to the right of the button
-            endIcon={<AddRoundedIcon />}
-          >
-            Add
-          </Button>
+          <AddActualite Onsave={fetchData} />
           <Button
             variant="contained"
             color="secondary"
             startIcon={<RestartAltRoundedIcon />}
-            onClick={() => handleEditAction(params)}
+            onClick={fetchData}
           >
             Refresh
           </Button>
@@ -169,8 +378,8 @@ export default function DataTable1() {
       <div style={{ height: "100%", width: "100%" }}>
         <DataGrid
           getRowHeight={getRowHeight}
-          rows={rows}
-          columns={columns}
+          rows={loading ? rows1 : rows}
+          columns={loading ? columns1 : columns}
           initialState={{
             pagination: {
               paginationModel: { page: 0, pageSize: 5 },
@@ -182,3 +391,48 @@ export default function DataTable1() {
       </div>
     </div>
   );
+}
+
+export async function InsertPost(post) {
+  console.log(post);
+  try {
+    // Insert form data into Supabase table
+    const { data, error } = await supabase.from("post").insert([
+      {
+        postDate: post.postDate,
+        postImage: post.postImage,
+        postType: post.postType,
+        description: post.description,
+        postUrl: post.postUrl,
+      },
+    ]);
+    if (error) {
+      setMessage(error.message);
+      Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        text: "Something went wrong!",
+        timer: 5000,
+        timerProgressBar: true,
+        heightAuto: true,
+      });
+    } else {
+      // Display toast notification
+      Swal.fire({
+        icon: "success",
+        title: "The post created successfully",
+        timer: 5000,
+        timerProgressBar: true,
+        heightAuto: true,
+      });
+    }
+  } catch (error) {
+    Swal.fire({
+      icon: "error",
+      title: "Oops...",
+      text: "Something went wrong!",
+      timer: 5000,
+      timerProgressBar: true,
+    });
+  }
+}

@@ -6,9 +6,10 @@ import { supabase } from "../../../utils/supabaseClient";
 import { Button } from "@mui/material";
 import Swal from "sweetalert2";
 import RestartAltRoundedIcon from "@mui/icons-material/RestartAltRounded";
-import AddActualite from "../../components/component/Actualites/AddActualite";
-import EditActualite from "../../components/component/Actualites/EditActualite";
+import AddActualite from "../../../components/component/Actualites/AddActualite";
+import EditActualite from "../../../components/component/Actualites/EditActualite";
 import Skeleton from "@mui/material/Skeleton";
+import ModeCommentIcon from "@mui/icons-material/ModeComment";
 
 export default function DataTable1() {
   const [rows, setRows] = useState([]);
@@ -148,7 +149,7 @@ export default function DataTable1() {
 
   const columns = [
     { field: "id", headerName: "ID", minWidth: 70, flex: 0.1, sort: "desc" },
-    { field: "description", headerName: "Description", minWidth: 230, flex: 1 },
+    { field: "description", headerName: "Description", minWidth: 130, flex: 1 },
     {
       field: "image",
       headerName: "Image",
@@ -197,6 +198,24 @@ export default function DataTable1() {
             Delete
           </Button>
           <EditActualite CurrentPost={params} Onsave={fetchData} />
+        </div>
+      ),
+    },
+    {
+      field: "Comments",
+      headerName: "Comments",
+      minWidth: 130,
+      flex: 0.5,
+      sortable: false,
+      renderCell: (params) => (
+        <div className="flex justify-center space-x-4 mt-9">
+          <Button
+            variant="contained"
+            className=" bg-blue-600"
+            startIcon={<ModeCommentIcon />}
+            onClick={() => DeletePost(params)}
+            style={{ display: "flex", alignItems: "center" }}
+          ></Button>
         </div>
       ),
     },
@@ -346,8 +365,8 @@ export default function DataTable1() {
       <div style={{ height: "100%", width: "100%" }}>
         <DataGrid
           getRowHeight={getRowHeight}
-          rows={rows}
-          columns={columns}
+          rows={loading ? rows1 : rows}
+          columns={loading ? columns1 : columns}
           initialState={{
             pagination: {
               paginationModel: { page: 0, pageSize: 5 },
