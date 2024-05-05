@@ -23,7 +23,6 @@ export default function FetchPosts() {
         throw error;
       }
 
-      // Update the years array with unique years from the original data
       const uniqueYears = [
         ...new Set(data.map((post) => new Date(post.postDate).getFullYear())),
       ];
@@ -51,7 +50,7 @@ export default function FetchPosts() {
 
   useEffect(() => {
     fetchData();
-  }, [sortBy]); // Fetch data whenever sortBy state changes
+  }, [sortBy]);
 
   const handleSearchChange = (event) => {
     setSearchQuery(event.target.value);
@@ -74,7 +73,6 @@ export default function FetchPosts() {
         throw error;
       }
 
-      // Append new data with existing postData
       setPostData((prevData) => [...prevData, ...newData]);
       setRest((prevRest) => prevRest - itemsPerPage);
       setCurrentPage((prevPage) => prevPage + 1);
@@ -83,7 +81,6 @@ export default function FetchPosts() {
     }
   };
 
-  // Filter data based on search query
   const filteredData = postData.filter((post) =>
     post.description.toLowerCase().includes(searchQuery.toLowerCase())
   );
