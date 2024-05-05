@@ -1,8 +1,8 @@
 import Head from "next/head";
-import NavBar from "@/components/NavBar";
+import NavBar from "../components/NavBar";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import Footer from "@/components/Fouter";
+import Footer from "../components/Fouter";
 
 // import Footer from "@/components/fouter";
 

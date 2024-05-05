@@ -68,12 +68,11 @@ export default function FacebookPostComponent({ postID }) {
             <div className="mt-5  border-non ">
               {post.postType === "Facebook" && (
                 <div className="aspect-w-1 aspect-h-1 w-full overflow-hidden">
-                  <iframe
-                    src={post.postUrl}
-                    title="Iomt 2021"
-                    className="aspect-ratio w-full md:aspect-auto" // Maintain aspect ratio on smaller screens
-                    style={{ minHeight: "600px" }} // Set a minimum height for the iframe
-                  ></iframe>
+                  <div
+                    className="fb-post sm:w-20 "
+                    data-href={post.postUrl}
+                    data-show-text="true"
+                  ></div>
                 </div>
               )}
               {post.postType === "Pdf" && (
