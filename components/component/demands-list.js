@@ -8,12 +8,25 @@ import { LoadingList } from "./loading-list";
 import Swal from "sweetalert2";
 import Box from "@mui/material/Box";
 import { DataGrid } from "@mui/x-data-grid";
+import { Modal, Skeleton, Typography } from "@mui/material";
+import ParentsCard from "./parents-card";
 
 export const Demandes = () => {
   const [demandes, setDemandes] = useState([]);
+  const [parents, setParents] = useState(null);
   const [fetchTrigger, setFetchTrigger] = useState(false);
   const [Loading, setLoading] = useState(true);
-  const [selectedRows, setSelectedRows] = useState([]);
+  const [parentLoading, setParentLoading] = useState(true);
+  const [open, setOpen] = useState(false);
+
+  const handleOpen = (parentId) => {
+    fetchParent(parentId);
+    setOpen(true);
+  };
+  const handleClose = () => {
+    setOpen(false);
+    setParentLoading(true);
+  };
 
   async function handleFetchAgain() {
     setLoading(true);
@@ -21,7 +34,7 @@ export const Demandes = () => {
   }
 
   useEffect(() => {
-    async function fetchData() {
+    async function fetchDemandes() {
       const { data, error } = await supabase
         .from("demandes")
         .select(
@@ -33,8 +46,21 @@ export const Demandes = () => {
         console.error(error);
       }
     }
-    fetchData();
+    fetchDemandes();
   }, [fetchTrigger]);
+
+  async function fetchParent(parentId) {
+    const { data, error } = await supabase
+      .from("parents")
+      .select()
+      .eq("student_id", parentId);
+    setParents(data);
+    setParentLoading(false);
+    if (error) {
+      console.error(error);
+    }
+    console.log("parent: ", parent);
+  }
 
   async function confirmerDemande(demandeId) {
     try {
@@ -88,14 +114,14 @@ export const Demandes = () => {
     });
   }
 
-  async function annulerDemande(demandeId) {
+  const annulerDemande = async (demandeId) => {
     try {
       await supabase.from("demandes").delete().eq("id", demandeId);
     } catch (error) {
       console.error(error);
     }
     handleFetchAgain();
-  }
+  };
 
   const columns = [
     { field: "id", headerName: "ID", width: 90 },
@@ -212,11 +238,53 @@ export const Demandes = () => {
           >
             Actualiser <ReplayIcon />
           </button>
+          <Modal
+            open={open}
+            onClose={handleClose}
+            aria-labelledby="modal-modal-title"
+            aria-describedby="modal-modal-description"
+          >
+            <Box
+              sx={{
+                backgroundColor: "white",
+                borderRadius: "8px",
+                padding: "20px",
+                textAlign: "center",
+                position: "absolute",
+                top: "50%",
+                left: "50%",
+                transform: "translate(-50%, -50%)",
+              }}
+            >
+              {parentLoading ? (
+                <Box
+                  sx={{
+                    height: "20rem",
+                    width: "15rem",
+                    backgroundColor: "white",
+                    borderRadius: "8px",
+                    padding: "20px",
+                    textAlign: "center",
+                    position: "absolute",
+                    top: "50%",
+                    left: "50%",
+                    transform: "translate(-50%, -50%)",
+                  }}
+                >
+                  <Skeleton animation="wave" variant="text" />
+                  <Skeleton animation="wave" variant="text" />
+                  <Skeleton animation="wave" variant="text" />
+                </Box>
+              ) : (
+                <ParentsCard parents={parents} />
+              )}
+            </Box>
+          </Modal>
         </div>
         {Loading ? (
           <LoadingList rowsNum={20} />
         ) : (
-          <Box sx={{ height: "auto", width: "100%" }}>
+          <Box sx={{ height: "auto", width: "100%", backgroundColor: "white" }}>
             <DataGrid
               rows={demandes}
               columns={columns}
@@ -226,6 +294,9 @@ export const Demandes = () => {
                     pageSize: 25,
                   },
                 },
+              }}
+              onCellClick={(params) => {
+                handleOpen(params.row.id);
               }}
               autoHeight={true}
               checkboxSelection={false}
