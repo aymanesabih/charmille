@@ -1,0 +1,137 @@
+"use client";
+import { useState, useEffect } from "react";
+import { supabase } from "../../../../utils/supabaseClient";
+import { DemoContainer } from "@mui/x-date-pickers/internals/demo";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import Autocomplete from "@mui/joy/Autocomplete";
+import { TimePicker } from "@mui/x-date-pickers/TimePicker";
+import { Test } from "../../../actualites/test/page";
+import { AbenceList } from "../../../../components/component/Absence/AbenceList";
+import { TextField } from "@mui/material";
+
+export default function VerifierAbsence() {
+  const [classesOptions, setClassesOptions] = useState([]);
+  const [selectedClass, setSelectedClass] = useState("");
+
+  const [classroomId, setClassroomId] = useState(null);
+  const [teacherId, setTeacherId] = useState(72);
+  const [subjectId, setsubjectId] = useState(null);
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const classes = await initClasses();
+        setClassesOptions(classes);
+      } catch (error) {
+        console.error("Error fetching classes:", error.message);
+      }
+    }
+
+    fetchData();
+  }, []);
+  const handleSelectedClass = (event, value) => {
+    setSelectedClass(value);
+    const selectedClassroom = classesOptions.find(
+      (option) => option.name === value
+    );
+
+    if (selectedClassroom) {
+      setClassroomId(selectedClassroom.id);
+      setsubjectId(selectedClassroom.subject_id);
+    } else {
+      setClassroomId(null);
+      setsubjectId(null);
+    }
+  };
+  useEffect(() => {
+    async function fetchData() {
+      const classes = await initClasses();
+      setClassesOptions(classes);
+    }
+    fetchData();
+  }, []);
+  const [startDate, setStartDate] = useState(null);
+  const [startTime, setStartTime] = useState(null);
+  const [endTime, setEndTime] = useState(null);
+
+  return (
+    <div>
+      <div className="bg-white flex flex-col sm:flex-row items-center p-4 space-y-4 sm:space-y-0 sm:space-x-4">
+        <div className="flex flex-col w-full sm:w-48">
+          <Autocomplete
+            id="classes"
+            className="h-14 w-full sm:w-48 bg-white"
+            value={selectedClass}
+            onChange={handleSelectedClass}
+            placeholder="Classes"
+            options={classesOptions.map((option) => option.name)}
+            required
+          />
+        </div>
+        <div className="flex flex-col w-full">
+          <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <div className="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-4">
+              <DatePicker
+                className="w-full"
+                label="Date"
+                value={startDate}
+                onChange={(newValue) => setStartDate(newValue)}
+                required
+              />
+              <TimePicker
+                label="Heure de début"
+                value={startTime}
+                onChange={(newValue) => setStartTime(newValue)}
+                required
+                className="w-full"
+              />
+              <TimePicker
+                label="Heure de fin"
+                value={endTime}
+                onChange={(newValue) => setEndTime(newValue)}
+                required
+                className="w-full"
+              />
+            </div>
+          </LocalizationProvider>
+        </div>
+      </div>
+      <div>
+        <AbenceList
+          selectedSubject={subjectId}
+          selectedClass={classroomId}
+          selectedDate={startDate}
+          selectedStartHour={startTime}
+          selectedEndHour={endTime}
+        />
+      </div>
+    </div>
+  );
+}
+
+async function initClasses() {
+  try {
+    const { data, error } = await supabase
+      .from("classroom_teacher_subject")
+      .select(
+        "classroom_id,teacher_id,classroom(grade(name),section),subject(id,name)"
+      )
+      .eq("teacher_id", 72);
+
+    if (error) {
+      throw new Error(error.message);
+    }
+    console.log(data);
+    return data.map((item) => ({
+      id: item.classroom_id,
+      subject_id: item.subject.id,
+      teacher_id: item.teacher_id,
+      name: `${item.classroom.grade.name}${item.classroom.section} - ${item.subject.name}`,
+    }));
+  } catch (error) {
+    console.error("Error fetching classes:", error.message);
+    return [];
+  }
+}

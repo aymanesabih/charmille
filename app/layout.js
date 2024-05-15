@@ -20,9 +20,9 @@ export default function RootLayout({ children }) {
         charset="UTF-8"
       ></script>
       <body className="{inter.className}">
-        <NavBar />
+        {/* <NavBar /> */}
         {children}
-        <Footer />
+        {/* <Footer /> */}
       </body>
     </html>
   );

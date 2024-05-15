@@ -411,7 +411,6 @@ export default function EditActualite({ CurrentPost, Onsave }) {
           .update(updatedFields)
           .eq("id", post.id)
           .select();
-
         if (error) {
           console.log(error.message);
           Swal.fire({
