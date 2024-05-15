@@ -1,5 +1,5 @@
 "use client";
-import FacebookPostCompononent from "../../components/component/FacebookPostCompononent";
+import FacebookPostCompononent from "../../../components/component/Actualites/FacebookPostCompononent";
 import { FetchComments } from "../../../api/Actualites/FetchComments";
 import { useEffect } from "react";
 import { useRouter, notFound } from "next/navigation";
@@ -19,20 +19,18 @@ export default function FacebookPost({ params }) {
       try {
         const postData = await FetchPost(Number(params["postID"]));
         setPost(postData);
-        console.log("Post : ", postData);
-        console.log("is null ", postData);
       } catch (error) {
         console.error("Error fetching post:", error.message);
         setPost(null);
       } finally {
-        setLoading(false); // Set loading to false when fetching is complete
+        setLoading(false);
       }
     };
 
     fetchPostData();
   }, [params]);
 
-  const [loading, setLoading] = useState(true); // Initialize loading state
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!loading && post === null) {
@@ -40,7 +38,6 @@ export default function FacebookPost({ params }) {
     }
   }, [loading, post]);
 
-  // params["postID"] = Number(params["postID"]);
   console.log("Post id : ", params["postID"]);
   useEffect(() => {
     // Create a <script> element
@@ -52,20 +49,18 @@ export default function FacebookPost({ params }) {
     script.crossOrigin = "anonymous";
     script.nonce = "M1jobWwC";
 
-    // Append the <script> element to the document body
     document.body.appendChild(script);
 
-    // Clean up the <script> element when the component unmounts
     return () => {
       document.body.removeChild(script);
     };
-  }, []); // Empty dependency array ensures the effect runs only once
+  }, []);
 
   return (
     <main className=" bg-white">
       <div className="mx-auto md:mx-20">
         <div id="fb-root"></div>
-        <FacebookPostCompononent postID={params.postID} />
+        {post && <FacebookPostCompononent postID={params.postID} />}
       </div>
     </main>
   );

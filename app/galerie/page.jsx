@@ -1,13 +1,7 @@
-"use client";
-import Image from "next/image";
-import Card from "../../../components/ui/Atcualite/PostCard";
-import { useState } from "react";
-import FetchPosts from "../../../api/Actualites/FetchData";
-
-export default function Actualites() {
+import InstagramFeed from "./galerie";
+export default function Galery() {
   return (
-    <div>
-      {/* Header Image */}
+    <div className="bg-white">
       <header>
         <OpeningPost
           MyImage="/images/actualite-header-image.jpg"
@@ -15,10 +9,7 @@ export default function Actualites() {
           Text="Toujours quelque chose de nouveau !"
         />
       </header>
-      {/* Grid of Cards */}
-      <section className="bg-white">
-        <FetchPosts />
-      </section>
+      <InstagramFeed />
     </div>
   );
 }
