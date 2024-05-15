@@ -215,7 +215,7 @@ export default function DataTable1() {
             as={`/admin/comments/${params.row.id}`}
             className="inline-flex items-center bg-blue-600 hover:bg-white hover:text-blue-600 hover:border-blue-600 border-2 font-semibold py-2 px-6 rounded-2xl text-white text-xs mt-auto mr-4 mb-4"
           >
-            <ModeCommentIcon className="mr-2" /> {/* Include the icon */}
+            <ModeCommentIcon className="mr-2" />
           </Link>
         </div>
       ),
@@ -386,7 +386,7 @@ export default function DataTable1() {
             },
           }}
           pageSizeOptions={[5, 10]}
-          checkboxSelection
+          checkboxSelection={false}
         />
       </div>
     </div>

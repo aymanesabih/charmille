@@ -29,7 +29,7 @@ const Toast = Swal.mixin({
     toast.onmouseleave = Swal.resumeTimer;
   },
 });
-export function ElevesAbsents({
+export function Absence({
   teacher_id,
   classroom,
   subject_id,
@@ -125,11 +125,12 @@ export function ElevesAbsents({
           setRows(
             data.map((student) => ({
               id: student.students.id,
-              FullName: `${student.students.last_name} ${student.students.first_name}`,
+              firstName: student.students.first_name,
+              lastName: student.students.last_name,
               Image: student.students.photo,
               Type: student.type,
               Date: student.absences_enseignants.date,
-
+              justification_url: student.justification_url,
               Remarque: student.remark,
             }))
           );
@@ -229,6 +230,7 @@ export function ElevesAbsents({
               En retard avec mot d&apos;excuse
             </MenuItem>
             <MenuItem value="En retard">En retard</MenuItem>
+            <MenuItem value="Absence justifiée">Absence justifiée</MenuItem>
             <MenuItem value="Absence non justifiée">
               Absence non justifiée
             </MenuItem>
@@ -279,7 +281,8 @@ export function ElevesAbsents({
   };
 
   const columns = [
-    { field: "FullName", headerName: "Full Name", width: 150 },
+    { field: "firstName", headerName: "First name", width: 130 },
+    { field: "lastName", headerName: "Last name", width: 130 },
     {
       field: "Image",
       headerName: "Image",
@@ -311,7 +314,7 @@ export function ElevesAbsents({
     {
       field: "Type Absence",
       headerName: "Type Absence",
-      width: 200,
+      width: 300,
       renderCell: (params) => {
         const VisuallyHiddenInput = styled("input")({
           clip: "rect(0 0 0 0)",
@@ -347,7 +350,287 @@ export function ElevesAbsents({
         );
       },
     },
+    {
+      field: "Justificatif",
+      headerName: "Justificatif",
+      description: "This column has a value getter and is not sortable.",
+      sortable: false,
+      width: 250,
+      renderCell: (params) => {
+        const VisuallyHiddenInput = styled("input")({
+          clip: "rect(0 0 0 0)",
+          clipPath: "inset(50%)",
+          height: 1,
+          overflow: "hidden",
+          position: "absolute",
+          bottom: 0,
+          left: 0,
+          whiteSpace: "nowrap",
+          width: 1,
+        });
+        if (params.row.Type === "Absence justifiée") {
+          return (
+            <div>
+              <div className="flex justify-center space-x-4 mt-4 ">
+                {loading ? (
+                  <CircularProgress variant={"solid"} color="success" />
+                ) : (
+                  !params.row.justification_url && (
+                    <Button
+                      component="label"
+                      role={undefined}
+                      variant="contained"
+                      tabIndex={-1}
+                    >
+                      <CloudUploadIcon />
+                      <input
+                        type="file"
+                        style={{ display: "none" }}
+                        onChange={(e) => AddJustification(e, params.row)}
+                      />
+                    </Button>
+                  )
+                )}
+                {loading1 ? (
+                  <CircularProgress variant={"solid"} color="success" />
+                ) : (
+                  params.row.justification_url && (
+                    <>
+                      <Button
+                        variant="contained"
+                        color="secondary"
+                        onClick={() =>
+                          window.open(params.row.justification_url)
+                        }
+                        style={{ display: "flex", alignItems: "center" }}
+                      >
+                        <RemoveRedEyeRoundedIcon />
+                      </Button>
+                      <Button
+                        component="label"
+                        role={undefined}
+                        variant="contained"
+                        tabIndex={-1}
+                        onChange={(e) => updateJustification(e, params.row)}
+                      >
+                        <AutoFixHighRoundedIcon />
+                        <input type="file" style={{ display: "none" }} />
+                      </Button>
+                      <Button
+                        variant="contained"
+                        color="error"
+                        style={{ display: "flex", alignItems: "center" }}
+                        onClick={() => DeleteJustification(params.row)}
+                      >
+                        <DeleteRoundedIcon />
+                      </Button>
+                    </>
+                  )
+                )}
+              </div>
+            </div>
+          );
+        } else {
+          return "No justifiation";
+        }
+      },
+    },
   ];
+  const Url = async (path, filename, params) => {
+    try {
+      const { data, error } = await supabase.storage
+        .from(path)
+        .getPublicUrl(filename);
+      if (error) {
+        throw error;
+      }
+      setExcelData((prevData) =>
+        prevData.map((rowData) =>
+          rowData[0] === params.lastName && rowData[1] === params.firstName
+            ? [rowData[0], rowData[1], rowData[2], rowData[3], data.publicUrl]
+            : rowData
+        )
+      );
+      handleJuatification(params.id, data.publicUrl);
+      await SaveJustificationUrl(data.publicUrl, params, AbsenceId);
+      console.log(params.justification_url);
+    } catch (error) {
+      throw error;
+    }
+  };
+  function PathName(params) {
+    let fileName = `${params.Date}_${params.firstName}_${params.lastName}.pdf`;
+    let TheYear = new Date().getFullYear();
+    let path = "justificationAbsence/";
+    if (
+      classroom.name === "GS" ||
+      classroom.name === "MS" ||
+      classroom.name === "PS"
+    ) {
+      path += "Maternelle/";
+      console.log(path);
+    } else {
+      path += "Elementaire/";
+    }
+    path += classroom.name + "/";
+    if (new Date().getMonth() + 1 < 9) {
+      path += TheYear - 1 + "-" + TheYear;
+    } else {
+      path += TheYear + "-" + (TheYear + 1);
+    }
+    return { path: path, name: fileName };
+  }
+  async function AddJustification(event, params) {
+    setLoading(true);
+    let fileName = PathName(params).name;
+    let path = PathName(params).path;
+    const file = event.target.files[0];
+
+    if (file) {
+      try {
+        const { data, error } = await supabase.storage
+          .from(path)
+          .upload(fileName, file);
+
+        if (error && error.statusCode === 409) {
+          Toast.fire({
+            icon: "error",
+            title: "The Justification already exists",
+          });
+        } else if (error) {
+          Toast.fire({
+            icon: "error",
+            title: "Something went wrong!",
+          });
+        } else {
+          Toast.fire({
+            icon: "success",
+            title: "Justification uploaded successfully",
+          });
+        }
+
+        Url(path, fileName, params);
+      } catch (error) {
+        console.error("Error uploading justification:", error.message);
+        if (error && error.statusCode === 409) {
+          Toast.fire({
+            icon: "error",
+            title: "The Justification already exists",
+          });
+        } else {
+          Toast.fire({
+            icon: "error",
+            title: "Something went wrong!",
+          });
+        }
+      } finally {
+        setLoading(false);
+      }
+    }
+  }
+
+  async function updateJustification(event, params) {
+    setLoading1(true);
+    const file = event.target.files[0];
+    let fileName = PathName(params).name;
+    let path = PathName(params).path;
+
+    if (file) {
+      try {
+        const { data, error } = await supabase.storage
+          .from(path)
+          .update(fileName, file, {
+            cacheControl: "3600",
+            upsert: true,
+          });
+        if (error && error.statusCode === 409) {
+          Toast.fire({
+            icon: "error",
+            title: "The Justification already exists",
+          });
+        } else {
+          Toast.fire({
+            icon: "success",
+            title: "Justification updated successfully",
+          });
+        }
+      } catch (error) {
+        console.error("Error updating justification:", error.message);
+        Toast.fire({
+          icon: "error",
+          title: "Something went wrong!",
+        });
+      } finally {
+        setLoading1(false);
+      }
+    }
+  }
+  async function DeleteJustification(params) {
+    Swal.fire({
+      title: "Are you sure?",
+      text: "You won't be able to revert this!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, delete it!",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        setLoading1(true);
+        let fileName = PathName(params).name;
+        let path = PathName(params).path;
+
+        path = path.replace("justificationAbsence/", "");
+
+        path += "/" + fileName;
+
+        try {
+          const { data, error } = await supabase.storage
+            .from("justificationAbsence")
+            .remove([path]);
+
+          const { data1, error1 } = await supabase
+            .from("attendance")
+            .update({ justification_url: null })
+            .eq("absences_enseignants_id", AbsenceId)
+            .eq("student_id", params.id)
+            .select();
+          if (error1) {
+            console.log(error1);
+          }
+
+          if (error || error1) {
+            Toast.fire({
+              icon: "error",
+              title: "Something went wrong!",
+            });
+          } else {
+            Toast.fire({
+              icon: "success",
+              title: "Justification deleted successfully",
+            });
+            handleJuatification(params.id, null);
+            setExcelData((prevData) =>
+              prevData.map((rowData) =>
+                rowData[0] === params.lastName &&
+                rowData[1] === params.firstName
+                  ? [rowData[0], rowData[1], rowData[2], rowData[3], null]
+                  : rowData
+              )
+            );
+          }
+        } catch (error) {
+          console.error("Error deleting justification:", error.message);
+          Toast.fire({
+            icon: "error",
+            title: "Something went wrong!",
+          });
+        } finally {
+          setLoading1(false);
+        }
+      }
+    });
+  }
 
   return (
     <div className="bg-white">
@@ -367,39 +650,38 @@ export function ElevesAbsents({
           Télécharger xlsx
         </Button>
       </div>
-      <div className="flex flex-wrap justify-center gap-2 md:justify-start md:gap-4 m-2">
+      <div className="flex space-x-4 m-2">
         <button
           disabled
-          className="flex-grow bg-pink-600 text-white font-bold p-3 rounded-xl"
+          className="  bg-pink-600 text-white font-bold p-3  w-1/5  rounded-xl"
         >
           {nbrRM} En retard avec mot d&rsquo;excuse
         </button>
         <button
           disabled
-          className="flex-grow bg-orange-600 text-white font-bold p-3 rounded-xl"
+          className="  bg-orange-600 text-white font-bold p-3  w-1/5 rounded-xl"
         >
           {nbrR} En retard
         </button>
         <button
           disabled
-          className="flex-grow bg-purple-700 text-white font-bold p-3 rounded-xl"
+          className="   bg-purple-700 text-white font-bold p-3  w-1/5 rounded-xl"
         >
           {nbrAJ} Absence justifiée
         </button>
         <button
           disabled
-          className="flex-grow bg-red-600 text-white font-bold p-3 rounded-xl"
+          className="bg-red-600 text-white font-bold p-3  w-1/5 rounded-xl"
         >
           {nbrANJ} Absence non justifiée
         </button>
         <button
           disabled
-          className="flex-grow bg-blue-600 text-white font-bold p-3 rounded-xl"
+          className="bg-blue-600 text-white font-bold p-3  w-1/5 rounded-xl"
         >
           {nbrP} Présent
         </button>
       </div>
-
       <div className=" bg-gray-300 p-5">
         <DataGrid
           className="bg-white border border-gray-200 rounded-lg shadow-md mx-auto"
