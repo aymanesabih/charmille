@@ -1,18 +1,24 @@
 import Image from "next/image";
+import Layout from "./layout";
+import TextAndTable from "@/components/contenu";
+import { Fragment } from "react";
 
 
 export default function Home() {
   return (
-      <div className="flex justify-center items-center mt-20">
+    < Fragment className="flex justify-center items-center mt-20">
         <div className="ml-auto mr-auto">
           <Image
             src="/propos.png"
             alt="Description de votre image"
-            width={1843}
+            width={1999}
             height={259}
           />
         </div>
-      </div>
+         <TextAndTable/> {/* ajoute le contenu ou bien les composants que vous voulez ici  */}
+      </Fragment>
+
+      
    
   );
 }
