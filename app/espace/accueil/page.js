@@ -1,8 +1,7 @@
-import Logout from "@/components/component/logout";
 import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-
+import Logout from "../../../components/component/logout"
 
 export default async function Home() {
   const cookieStore =cookies();

@@ -1,4 +1,4 @@
-import EspaceLogin from '@/components/component/espace-login'
+import EspaceLogin from '../../../components/component/espace-login'
 import React from 'react'
 
 
