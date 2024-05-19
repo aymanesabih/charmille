@@ -101,7 +101,6 @@ export default function AddActualite({ Onsave }) {
   };
   const HandleuploadPdf = async (pdfFile) => {
     try {
-      // Upload PDF file to Supabase Storage
       const { data, error } = await supabase.storage
         .from("Posts/Pdfs")
         .upload(pdfFile.name, pdfFile);
