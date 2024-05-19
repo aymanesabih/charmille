@@ -1,7 +1,7 @@
 // ./components/componentAdditionalDetailsForm.js
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
+import { Label } from "../ui/label";
+import { Textarea } from "../ui/textarea";
+// import { Button } from "@/components/ui/button";
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 
 
