@@ -1,20 +1,18 @@
 "use client";
 // Payer.js
 import { useEffect, useState } from 'react';
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Button } from "@/components/ui/button"
-import { LoadingPayer } from '../../components/component/loading-payer';
-import { supabase } from '../../utils/supabaseClient';
+import { useRouter } from 'next/navigation';
+import { supabase } from '../../../utils/supabaseClient';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import Swal from 'sweetalert2';
-import { AdditionalDetailsForm } from '../../components/component/AdditionalDetailsForm';
-import { ParentsForm } from '../../components/component/ParentsForm';
-import { StudentForm } from '../../components/component/StudentForm';
+import { AdditionalDetailsForm } from '../../../components/component/AdditionalDetailsForm';
+import { ParentsForm } from '../../../components/component/ParentsForm';
+import { StudentForm } from '../../../components/component/StudentForm';
 
 export function Add() {
-
+    const router = useRouter();
+    
     const [studentData, setStudentData] = useState(null);
     const [isPaid, setIsPaid] = useState(false);
     const [photoURL, setPhotoURL] = useState(null);
@@ -54,7 +52,7 @@ export function Add() {
         try {
             const confirmed = await Swal.fire({
                 title: 'Êtes-vous sûr?',
-                text: "Voulez-vous soumettre ces informations est finaliser l'inscription?",
+                text: "Voulez-vous soumettre ces informations et finaliser l'inscription?",
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#3085d6',
@@ -83,7 +81,6 @@ export function Add() {
                             bloodtype: values.bloodType,
                             allergies: values.allergies,
                             medical_conditions: values.medicalConditions,
-                            photo: 'wait',
                         }
                     ]);
 
@@ -129,7 +126,7 @@ export function Add() {
                         {
                             student_id: studentId,
                             student_name: `${values.student.firstName} ${values.student.lastName}`,
-                            inscription: 1300,
+                            inscription: price,
                         }
                     ]);
 
@@ -146,6 +143,7 @@ export function Add() {
                 });
 
                 printReceipt(firstName, lastName, gradeLevel, price);
+                router.push('/admin/profile');
             }
         } catch (error) {
             setError(error.message);
@@ -296,7 +294,7 @@ export function Add() {
                                     calculateAge={calculateAge}
                                     setFieldValue={setFieldValue}
                                 />
-                                <AdditionalDetailsForm/>
+                                <AdditionalDetailsForm />
                                 <ParentsForm values={values}
                                     setFieldValue={setFieldValue} />
 
