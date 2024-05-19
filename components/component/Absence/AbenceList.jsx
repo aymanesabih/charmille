@@ -6,14 +6,18 @@ import RemoveRedEyeSharpIcon from "@mui/icons-material/RemoveRedEyeSharp";
 import { DataGrid } from "@mui/x-data-grid";
 import { useEffect, useState } from "react";
 import { supabase } from "../../../utils/supabaseClient";
+import Link from "next/link";
+import Skeleton from "@mui/material/Skeleton";
 
-export function Test({
+export function AbenceList({
   selectedDate,
   selectedStartHour,
   selectedEndHour,
   selectedClass = null,
   selectedSubject,
 }) {
+  const [loading, setLoading] = useState(true);
+
   function removeSeconds(timeString) {
     const [hours, minutes] = timeString.split(":");
     const newTimeString = `${hours}:${minutes}`;
@@ -43,8 +47,6 @@ export function Test({
 
   const [rows, setRows] = useState([]);
   useEffect(() => {
-    console.log("Updating .....");
-    console.log("selected class ,subject", selectedClass, selectedSubject);
     const fetchData = async () => {
       try {
         const data = await initAbsance();
@@ -62,6 +64,7 @@ export function Test({
             )}`,
           }))
         );
+        setLoading(false);
       } catch (error) {
         console.log(error);
       }
@@ -74,6 +77,7 @@ export function Test({
     selectedDate,
     selectedStartHour,
     selectedEndHour,
+    loading,
   ]);
   async function initAbsance() {
     try {
@@ -139,25 +143,172 @@ export function Test({
       return [];
     }
   }
+  const rows1 = [
+    {
+      id: 1,
+      Date: "2024-05-15",
+      Classe: "A",
+      Période: "Morning",
+      Subject: "Math",
+      nbrP: 20,
+      nbrA: 5,
+      Actions: "",
+      Comments: "",
+    },
+    {
+      id: 2,
+      Date: "2024-05-15",
+      Classe: "B",
+      Période: "Morning",
+      Subject: "Science",
+      nbrP: 18,
+      nbrA: 2,
+      Actions: "",
+      Comments: "",
+    },
+    {
+      id: 3,
+      Date: "2024-05-15",
+      Classe: "C",
+      Période: "Afternoon",
+      Subject: "English",
+      nbrP: 22,
+      nbrA: 3,
+      Actions: "",
+      Comments: "",
+    },
+    {
+      id: 4,
+      Date: "2024-05-15",
+      Classe: "D",
+      Période: "Afternoon",
+      Subject: "History",
+      nbrP: 19,
+      nbrA: 1,
+      Actions: "",
+      Comments: "",
+    },
+    {
+      id: 5,
+      Date: "2024-05-15",
+      Classe: "E",
+      Période: "Evening",
+      Subject: "Geography",
+      nbrP: 21,
+      nbrA: 4,
+      Actions: "",
+      Comments: "",
+    },
+  ];
 
+  const columns1 = [
+    {
+      field: "id",
+      headerName: "ID",
+      width: 70,
+      renderCell: (params) => (
+        <div className="flex justify-center space-x-4 mt-3">
+          <Skeleton variant="rectangular" width={25} height={25} />
+        </div>
+      ),
+    },
+    {
+      field: "Date",
+      headerName: "Date",
+      width: 130,
+      renderCell: (params) => (
+        <div className="flex justify-center space-x-4 mt-3">
+          <Skeleton variant="rectangular" width={200} height={20} />
+        </div>
+      ),
+    },
+    {
+      field: "Classe",
+      headerName: "Classe",
+      width: 130,
+      renderCell: (params) => (
+        <Skeleton
+          variant="rectangular"
+          className="flex justify-center space-x-4 mt-3"
+          width={140}
+          height={20}
+        />
+      ),
+    },
+    {
+      field: "Période",
+      headerName: "Période",
+      width: 130,
+      renderCell: (params) => (
+        <div className="flex justify-center space-x-4 mt-3">
+          <Skeleton variant="rectangular" width={100} height={20} />
+        </div>
+      ),
+    },
+    {
+      field: "Subject",
+      headerName: "Subject",
+      width: 130,
+      renderCell: (params) => (
+        <div className="flex justify-center space-x-4 mt-3">
+          <Skeleton variant="rectangular" width={100} height={20} />
+        </div>
+      ),
+    },
+    {
+      field: "nbrP",
+      headerName: "Nbr  presents",
+      width: 130,
+      renderCell: (params) => (
+        <div className="flex justify-center space-x-4 mt-3">
+          <Skeleton variant="rectangular" width={160} height={20} />
+        </div>
+      ),
+    },
+    {
+      field: "nbrA",
+      headerName: "Nbr  absents/retards",
+      width: 160,
+      renderCell: (params) => (
+        <div className="flex justify-center space-x-4 mt-3">
+          <Skeleton variant="rectangular" width={160} height={20} />
+        </div>
+      ),
+    },
+    {
+      field: "Actions",
+      headerName: "Actions",
+      minWidth: 130,
+      flex: 0.5,
+      sortable: false,
+      renderCell: (params) => (
+        <Skeleton
+          variant="rectangular"
+          className="flex justify-center space-x-4 mt-3"
+          width={100}
+          height={20}
+        />
+      ),
+    },
+  ];
   return (
-    <div>
+    <div className="  bg-gray-300 p-5">
       <DataGrid
-        rows={rows}
-        columns={columns}
+        className="bg-white border border-gray-200 rounded-lg shadow-md mx-auto"
+        rows={loading ? rows1 : rows}
+        columns={loading ? columns1 : columns}
         initialState={{
           pagination: {
             paginationModel: { page: 0, pageSize: 5 },
           },
         }}
         pageSizeOptions={[5, 10]}
-        checkboxSelection
+        checkboxSelection={false}
       />
     </div>
   );
 }
 const columns = [
-  { field: "id", headerName: "ID", width: 70 },
   { field: "Date", headerName: "Date", width: 130 },
   { field: "Classe", headerName: "Classe", width: 130 },
   { field: "Période", headerName: "Période", width: 130 },
@@ -182,17 +333,13 @@ const columns = [
       });
 
       return (
-        <div>
-          <div className=" mt-2">
-            <Button
-              variant="contained"
-              color="success"
-              style={{ display: "flex", alignItems: "center" }}
-            >
-              <RemoveRedEyeSharpIcon />
-            </Button>
-          </div>
-        </div>
+        <Link
+          href="/enseignant/absence/VerifierAbsence/[key]"
+          as={`/enseignant/absence/VerifierAbsence/${params.row.id}`}
+          className="inline-flex items-center bg-blue-600 hover:bg-white hover:text-blue-600 hover:border-blue-600 border-2 font-semibold py-2 px-5 rounded-2xl text-white text-xs mt-auto m-auto"
+        >
+          <RemoveRedEyeSharpIcon />
+        </Link>
       );
     },
   },

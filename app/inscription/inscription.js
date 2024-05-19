@@ -7,7 +7,7 @@ import { supabase } from '../../utils/supabaseClient';
 import PhoneInput from 'react-phone-number-input';
 import 'react-phone-number-input/style.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faUser, faPhone, faEnvelope, faUsers, faCake, faVenusMars, faHouseUser } from '@fortawesome/free-solid-svg-icons';
+import { LocalPhone as LocalPhoneIcon, Person as PersonIcon, FamilyRestroom as FamilyRestroomIcon, Email as EmailIcon, Cake as CakeIcon, Transgender as TransgenderIcon, SupervisorAccount as SupervisorAccountIcon } from '@mui/icons-material';
 import { toast } from 'react-toastify';
 
 export function Inscription() {
@@ -147,7 +147,7 @@ export function Inscription() {
                                             <div className="w-full md:w-1/2">
                                                 <label htmlFor="student-last-name" className="block font-medium">Nom de l'élève :</label>
                                                 <div className="w-full flex items-center">
-                                                    <FontAwesomeIcon icon={faUser} className="mr-2 text-gray-500" />
+                                                    <PersonIcon className="mr-2 text-gray-500" />
                                                     <Field id="student-last-name" name="student.lastName" type="text" placeholder="Nom de famille" className="w-full px-3 py-2 border rounded-md focus:outline-none focus:border-blue-500" />
                                                 </div>
                                                 <ErrorMessage name="student.lastName" component="div" className="text-red-500" />
@@ -162,7 +162,7 @@ export function Inscription() {
                                             <div className="w-full md:w-1/2">
                                                 <label htmlFor="student-date-of-birth" className="block font-medium">Date de naissance :</label>
                                                 <div className="w-full flex items-center">
-                                                    <FontAwesomeIcon icon={faCake} className="mr-2 text-gray-500" />
+                                                    <CakeIcon className="mr-2 text-gray-500" />
                                                     <Field
                                                         id="student-date-of-birth"
                                                         name="student.dateOfBirth"
@@ -195,7 +195,7 @@ export function Inscription() {
                                         <div className="space-y-2">
                                             <label htmlFor="student-gender" className="block font-medium">Sexe :</label>
                                             <div className="w-full flex items-center">
-                                                <FontAwesomeIcon icon={faVenusMars} className="mr-2 text-gray-500" />
+                                                <TransgenderIcon className="mr-2 text-gray-500" />
                                                 <div role="group" aria-labelledby="my-radio-group" className="space-y-2">
                                                     <label className="inline-flex items-center mr-4">
                                                         <Field type="radio" name="student.gender" value="male" className="form-radio" />
@@ -259,7 +259,7 @@ export function Inscription() {
 
                         <div className="parents-section border border-gray-300 rounded-md p-4 space-y-4">
                             <div className="w-full flex items-center justify-center	">
-                                <FontAwesomeIcon icon={faUsers} className="mr-2 text-gray-500" />
+                                <SupervisorAccountIcon className="mr-2 text-gray-500" />
                                 <h2 className="text-2xl font-bold text-center">Parents</h2>
                             </div>
                             <FieldArray name="parents">
@@ -272,7 +272,7 @@ export function Inscription() {
                                                     <div className="w-full md:w-1/2">
                                                         <label htmlFor={`parents.${index}.parentFirstName`} className="block font-medium">Nom :</label>
                                                         <div className="w-full flex items-center">
-                                                            <FontAwesomeIcon icon={faUser} className="mr-2 text-gray-500" />
+                                                            <PersonIcon className="mr-2 text-gray-500" />
                                                             <Field name={`parents.${index}.parentFirstName`} placeholder="Nom de famille" className="w-full px-3 py-2 border rounded-md focus:outline-none focus:border-blue-500" />
                                                         </div>
                                                         <ErrorMessage name={`parents.${index}.parentFirstName`} component="div" className="text-red-500" />
@@ -284,7 +284,7 @@ export function Inscription() {
                                                     </div>
                                                 </div>
                                                 <div className="w-full flex items-center">
-                                                    <FontAwesomeIcon icon={faPhone} className="mr-2 text-gray-500" />
+                                                    <LocalPhoneIcon className="mr-2 text-gray-500" />
                                                     <Field name={`parents.${index}.phoneNumber`}>
                                                         {({ field, form }) => (
                                                             <PhoneInput
@@ -298,14 +298,15 @@ export function Inscription() {
                                                         )}
                                                     </Field>
                                                 </div>
+
                                                 <ErrorMessage name={`parents.${index}.phoneNumber`} component="div" className="text-red-500" />
                                                 <div className="w-full flex items-center">
-                                                    <FontAwesomeIcon icon={faEnvelope} className="mr-2 text-gray-500" />
+                                                    <EmailIcon className="mr-2 text-gray-500" />
                                                     <Field name={`parents.${index}.email`} placeholder="Adresse e-mail" className="w-full px-3 py-2 border rounded-md focus:outline-none focus:border-blue-500" />
                                                 </div>
                                                 <ErrorMessage name={`parents.${index}.email`} component="div" className="text-red-500" />
                                                 <div className="w-full flex items-center">
-                                                    <FontAwesomeIcon icon={faHouseUser} className="mr-2 text-gray-500" />
+                                                    <FamilyRestroomIcon className="mr-2 text-gray-500" />
                                                     <Field name={`parents.${index}.relationship`} as="select" className="w-full px-3 py-2 border rounded-md focus:outline-none focus:border-blue-500">
                                                         <option value="">Selectionner la Relation de Parenté</option>
                                                         <option value="Père">Père</option>

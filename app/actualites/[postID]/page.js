@@ -38,9 +38,7 @@ export default function FacebookPost({ params }) {
     }
   }, [loading, post]);
 
-  console.log("Post id : ", params["postID"]);
   useEffect(() => {
-    // Create a <script> element
     const script = document.createElement("script");
     script.src =
       "https://connect.facebook.net/en_US/sdk.js#xfbml=1&version=v19.0&appId=1079056626765845";
